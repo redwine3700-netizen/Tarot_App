@@ -6,124 +6,148 @@ import 'package:shared_preferences/shared_preferences.dart';
 class TarotCard {
   final String nombre;
   final String significado;
+  final String imagePath;
 
   TarotCard({
     required this.nombre,
     required this.significado,
+    required this.imagePath,
   });
 }
 
-/// MAZO BÁSICO DE CARTAS
+/// MAZO BÁSICO DE CARTAS (22 arcanos mayores)
 final List<TarotCard> cartasTarot = [
   TarotCard(
     nombre: 'El Loco',
     significado:
     'Nuevos comienzos, salto de fe y aventura. Confía en el viaje y déjate llevar.',
+    imagePath: 'assets/tarot/loco.png',
   ),
   TarotCard(
     nombre: 'El Mago',
     significado:
     'Poder personal, acción e iniciativa. Tienes todo para manifestar tus deseos.',
+    imagePath: 'assets/tarot/mago.png',
   ),
   TarotCard(
     nombre: 'La Sacerdotisa',
     significado:
     'Intuición, misterio y sabiduría interior. Escucha tu voz interna.',
+    imagePath: 'assets/tarot/sacerdotisa.png',
   ),
   TarotCard(
     nombre: 'La Emperatriz',
     significado:
     'Abundancia, amor, creatividad y energía maternal. Momento de florecimiento.',
+    imagePath: 'assets/tarot/emperatriz.png',
   ),
   TarotCard(
     nombre: 'El Emperador',
     significado:
     'Orden, estructura, autoridad y seguridad. Toma el control con firmeza.',
+    imagePath: 'assets/tarot/emperador.png',
   ),
   TarotCard(
     nombre: 'El Sumo Sacerdote',
     significado:
     'Guía espiritual, tradición y aprendizaje. Busca consejo y estabilidad.',
+    imagePath: 'assets/tarot/sacerdote.png',
   ),
   TarotCard(
     nombre: 'Los Enamorados',
     significado:
     'Amor, decisiones importantes y conexión profunda. Elige con el corazón.',
+    imagePath: 'assets/tarot/enamorados.png',
   ),
   TarotCard(
     nombre: 'El Carro',
     significado:
     'Determinación, victoria y avance. Vas en la dirección correcta.',
+    imagePath: 'assets/tarot/carro.png',
   ),
   TarotCard(
     nombre: 'La Justicia',
     significado:
     'Verdad, equilibrio y decisiones justas. Actúa con responsabilidad.',
+    imagePath: 'assets/tarot/justicia.png',
   ),
   TarotCard(
     nombre: 'El Ermitaño',
     significado:
     'Introspección, soledad elegida y búsqueda de respuestas. Mira hacia dentro.',
+    imagePath: 'assets/tarot/ermitaño.png',
   ),
   TarotCard(
     nombre: 'La Rueda de la Fortuna',
     significado:
     'Cambios, destino y ciclos. Algo grande está por moverse a tu favor.',
+    imagePath: 'assets/tarot/fortuna.png',
   ),
   TarotCard(
     nombre: 'La Fuerza',
     significado:
     'Valentía, control emocional y compasión. Tu fuerza está en tu calma.',
+    imagePath: 'assets/tarot/fuerza.png',
   ),
   TarotCard(
     nombre: 'El Colgado',
     significado:
     'Pausa, reflexión y nuevos puntos de vista. Deja ir lo que ya no sirve.',
+    imagePath: 'assets/tarot/colgado.png',
   ),
   TarotCard(
     nombre: 'La Muerte',
     significado:
     'Transformación profunda, cierres necesarios y renacimiento. Algo nuevo comienza.',
+    imagePath: 'assets/tarot/muerte.png',
   ),
   TarotCard(
     nombre: 'La Templanza',
     significado:
     'Paciencia, armonía y equilibrio. Avanza con calma y claridad.',
+    imagePath: 'assets/tarot/templanza.png',
   ),
   TarotCard(
     nombre: 'El Diablo',
     significado:
     'Tentaciones, ataduras y deseos intensos. Reconoce lo que te limita.',
+    imagePath: 'assets/tarot/diablo.png',
   ),
   TarotCard(
     nombre: 'La Torre',
     significado:
     'Cambios inesperados, revelaciones y liberación. Se cae lo que ya no sirve.',
+    imagePath: 'assets/tarot/torre.png',
   ),
   TarotCard(
     nombre: 'La Estrella',
     significado:
     'Esperanza, guía divina, paz y sanación. Se acerca lo que anhelas.',
+    imagePath: 'assets/tarot/estrella.png',
   ),
   TarotCard(
     nombre: 'La Luna',
     significado:
     'Intuición, emociones ocultas y sueños. No todo es lo que parece.',
+    imagePath: 'assets/tarot/luna.png',
   ),
   TarotCard(
     nombre: 'El Sol',
     significado:
     'Éxito, alegría, claridad y bendiciones. Buenas noticias llegan a tu vida.',
+    imagePath: 'assets/tarot/sol.png',
   ),
   TarotCard(
     nombre: 'El Juicio',
     significado:
     'Renovación, cambio de conciencia y despertar interior. Segunda oportunidad.',
+    imagePath: 'assets/tarot/juicio.png',
   ),
   TarotCard(
     nombre: 'El Mundo',
     significado:
     'Cierre de ciclos, logros y realización. Estás alcanzando una meta importante.',
+    imagePath: 'assets/tarot/mundo.png',
   ),
 ];
 
@@ -141,7 +165,6 @@ class DailyCardManager {
     final savedDate = prefs.getString(_keyDate);
     final savedIndex = prefs.getInt(_keyIndex);
 
-    // Si ya hay carta guardada para hoy, la reutilizamos
     if (savedDate == todayString &&
         savedIndex != null &&
         savedIndex >= 0 &&
@@ -149,7 +172,6 @@ class DailyCardManager {
       return cartasTarot[savedIndex];
     }
 
-    // Si no hay carta de hoy, generamos una nueva
     final random = Random();
     final newIndex = random.nextInt(cartasTarot.length);
 
@@ -232,10 +254,8 @@ final List<HoroscopeSign> signos = [
     fecha: '21 de mayo - 20 de junio',
     resumenHoy:
     'Tu mente está muy activa. Buen día para comunicar y aprender.',
-    amor:
-    'Una conversación pendiente puede traer claridad y cercanía.',
-    dinero:
-    'Ideas nuevas pueden abrirte puertas. Anota todo lo que se te ocurra.',
+    amor: 'Una conversación pendiente puede traer claridad y cercanía.',
+    dinero: 'Ideas nuevas pueden abrirte puertas. Anota todo lo que se te ocurra.',
     salud: 'Descansa tu mente desconectando un rato de pantallas.',
   ),
   HoroscopeSign(
@@ -245,8 +265,7 @@ final List<HoroscopeSign> signos = [
     'La emoción está más sensible hoy. Escucha lo que sientes.',
     amor:
     'Necesitas contención y cariño. Rodéate de personas que te hagan bien.',
-    dinero:
-    'Buen día para planear a largo plazo y pensar en seguridad.',
+    dinero: 'Buen día para planear a largo plazo y pensar en seguridad.',
     salud: 'Protege tu energía evitando discusiones innecesarias.',
   ),
   HoroscopeSign(
@@ -254,8 +273,7 @@ final List<HoroscopeSign> signos = [
     fecha: '23 de julio - 22 de agosto',
     resumenHoy:
     'Tu brillo natural se nota. Día ideal para mostrar tus talentos.',
-    amor:
-    'Un gesto romántico puede fortalecer mucho un vínculo.',
+    amor: 'Un gesto romántico puede fortalecer mucho un vínculo.',
     dinero:
     'Confía en tu liderazgo, pero evita el orgullo en decisiones financieras.',
     salud: 'Muévete, baila o haz algo que te haga sentir vital y seguro.',
@@ -276,10 +294,8 @@ final List<HoroscopeSign> signos = [
     fecha: '23 de septiembre - 22 de octubre',
     resumenHoy:
     'Buscas equilibrio y armonía. Evita extremos.',
-    amor:
-    'Buen día para acuerdos, disculpas y reconciliación.',
-    dinero:
-    'Piensa en alianzas o trabajos en equipo. Juntos avanzan más.',
+    amor: 'Buen día para acuerdos, disculpas y reconciliación.',
+    dinero: 'Piensa en alianzas o trabajos en equipo. Juntos avanzan más.',
     salud: 'Rodéate de belleza: música, arte o naturaleza te harán muy bien.',
   ),
   HoroscopeSign(
@@ -289,8 +305,7 @@ final List<HoroscopeSign> signos = [
     'Las emociones van profundas. No temas mirar adentro.',
     amor:
     'La intensidad puede unir o separar. Elige comunicar en vez de controlar.',
-    dinero:
-    'Transformar una vieja idea puede traer nuevas oportunidades.',
+    dinero: 'Transformar una vieja idea puede traer nuevas oportunidades.',
     salud: 'Descarga la tensión con ejercicio o escritura.',
   ),
   HoroscopeSign(
@@ -356,8 +371,8 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
         scaffoldBackgroundColor: Colors.black,
         colorScheme: const ColorScheme.dark(
-          primary: Color(0xFFFFD700), // dorado
-          secondary: Color(0xFFB39DDB), // morado
+          primary: Color(0xFFFFD700),
+          secondary: Color(0xFFB39DDB),
         ),
         textTheme: const TextTheme(
           bodyMedium: TextStyle(
@@ -500,25 +515,47 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  if (_cargandoCarta)
-                    const Text('Cargando tu carta mística de hoy...')
-                  else if (_cartaDelDia != null) ...[
+                  if (_cargandoCarta) ...[
+                    const SizedBox(
+                      height: 120,
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  ] else if (_cartaDelDia != null) ...[
+                    // 👉 Imagen de la carta del día
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: AspectRatio(
+                        aspectRatio: 3 / 5,
+                        child: Image.asset(
+                          _cartaDelDia!.imagePath, // usa tu imagePath
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // 👉 Nombre de la carta
                     Text(
                       _cartaDelDia!.nombre,
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
+
+                    // 👉 Significado corto
                     Text(
                       _cartaDelDia!.significado,
-                      style: theme.textTheme.bodyMedium,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
-                  ] else
-                    const Text(
-                      'No se pudo cargar la carta del día. Intenta de nuevo más tarde.',
-                    ),
+                  ] else ...[
+                    const Text('Aún no hay carta del día disponible'),
+                  ]
+
                 ],
               ),
             ),
@@ -624,8 +661,8 @@ class _TarotScreenState extends State<TarotScreen> {
     final carta = await DailyCardManager.getOrGenerateDailyCard();
     setState(() {
       cartaDelDia = carta;
-      tiradaTres = null; // limpiamos tirada
-      cartaDelDiaRevelada = false; // vuelve boca abajo
+      tiradaTres = null;
+      cartaDelDiaRevelada = false;
     });
   }
 
@@ -637,8 +674,8 @@ class _TarotScreenState extends State<TarotScreen> {
     }
     setState(() {
       tiradaTres = indices.map((i) => cartasTarot[i]).toList();
-      cartaDelDia = null; // limpiamos carta del día
-      tiradaRevelada = List<bool>.filled(3, false); // todas boca abajo
+      cartaDelDia = null;
+      tiradaRevelada = List<bool>.filled(3, false);
     });
   }
 
@@ -656,7 +693,7 @@ class _TarotScreenState extends State<TarotScreen> {
           gradient: LinearGradient(
             colors: [
               Colors.black,
-              Color(0xFF130024), // morado muy oscuro
+              Color(0xFF130024),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -702,6 +739,7 @@ class _TarotScreenState extends State<TarotScreen> {
                       titulo: 'Carta del día',
                       nombre: cartaDelDia!.nombre,
                       significado: cartaDelDia!.significado,
+                      imagePath: cartaDelDia!.imagePath,
                       theme: theme,
                     ),
                   ),
@@ -728,6 +766,7 @@ class _TarotScreenState extends State<TarotScreen> {
                         titulo: ['Pasado', 'Presente', 'Futuro'][i],
                         nombre: tiradaTres![i].nombre,
                         significado: tiradaTres![i].significado,
+                        imagePath: tiradaTres![i].imagePath,
                         theme: theme,
                       ),
                     ),
@@ -778,56 +817,27 @@ class _TarotScreenState extends State<TarotScreen> {
         ),
       ),
       elevation: 10,
-      child: Container(
-        height: 150,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          gradient: const LinearGradient(
-            colors: [
-              Color(0xFF1A0B2E),
-              Color(0xFF000000),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.auto_awesome,
-                color: Color(0xFFFFD700),
-                size: 32,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                etiqueta,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'Toca para revelar',
-                style: TextStyle(
-                  color: Colors.white54,
-                  fontSize: 12,
-                ),
-              ),
-            ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: AspectRatio(
+          aspectRatio: 3 / 5,
+          child: Image.asset(
+            'assets/tarot/reverso.png',
+            fit: BoxFit.cover,
           ),
         ),
       ),
     );
   }
 
+
+
+
   Widget _buildFrontCardContent({
     required String titulo,
     required String nombre,
     required String significado,
+    required String imagePath,
     required ThemeData theme,
   }) {
     return Card(
@@ -846,6 +856,28 @@ class _TarotScreenState extends State<TarotScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: AspectRatio(
+                aspectRatio: 3 / 5,
+                child: Image.asset(
+                  imagePath,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.black26,
+                      child: const Center(
+                        child: Icon(
+                          Icons.image_not_supported,
+                          color: Colors.white38,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             Text(
               titulo,
               style: theme.textTheme.titleSmall?.copyWith(
@@ -957,7 +989,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   String? _signoSeleccionado;
   bool _notificacionesActivadas = true;
-  bool _temaOscuroActivado = true; // placeholder
+  bool _temaOscuroActivado = true;
 
   @override
   void initState() {
@@ -985,7 +1017,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Card: Tu signo
+          // Tu signo
           Card(
             color: Colors.grey[900],
             shape: RoundedRectangleBorder(
@@ -1010,7 +1042,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     DropdownButton<String>(
                       dropdownColor: Colors.black,
                       value: _signoSeleccionado,
-                      icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                      icon:
+                      const Icon(Icons.arrow_drop_down, color: Colors.white),
                       items: signos
                           .map(
                             (s) => DropdownMenuItem<String>(

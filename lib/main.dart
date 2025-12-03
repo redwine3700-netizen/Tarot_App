@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+
 /// MODELO DE CARTA DE TAROT
 class TarotCard {
   final String nombre;
@@ -216,7 +217,7 @@ class HoroscopeSign {
   final String dinero;
   final String salud;
 
-  HoroscopeSign({
+  const HoroscopeSign({
     required this.nombre,
     required this.fecha,
     required this.resumenHoy,
@@ -225,6 +226,7 @@ class HoroscopeSign {
     required this.salud,
   });
 }
+
 
 /// LISTA DE SIGNOS
 final List<HoroscopeSign> signos = [
@@ -918,65 +920,201 @@ class HoroscopeScreen extends StatelessWidget {
         title: const Text('Horóscopos'),
         centerTitle: true,
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: signos.length,
-        itemBuilder: (context, index) {
-          final signo = signos[index];
-          return Card(
-            color: Colors.grey[900],
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            margin: const EdgeInsets.only(bottom: 12),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    signo.nombre,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: const Color(0xFFFFD700),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    signo.fecha,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.white70,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    signo.resumenHoy,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Amor: ${signo.amor}',
-                    style: theme.textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Dinero: ${signo.dinero}',
-                    style: theme.textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Salud: ${signo.salud}',
-                    style: theme.textTheme.bodySmall,
-                  ),
-                ],
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Elige tu signo',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
             ),
-          );
-        },
+            const SizedBox(height: 12),
+            Expanded(
+              child: GridView.builder(
+                itemCount: signos.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 3 / 2,
+                ),
+                itemBuilder: (context, index) {
+                  final sign = signos[index];
+                  return _HoroscopeCard(sign: sign);
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
+class _HoroscopeCard extends StatelessWidget {
+  final HoroscopeSign sign;
+
+  const _HoroscopeCard({required this.sign});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: const Color(0xFF160B2A),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          builder: (context) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Cabecera: nombre + fecha
+                    Text(
+                      sign.nombre,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      sign.fecha,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.white70,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Resumen
+                    Text(
+                      'Resumen de hoy',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: const Color(0xFFFFD700),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      sign.resumenHoy,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Amor
+                    Text(
+                      'Amor',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: const Color(0xFFFFD700),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      sign.amor,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Dinero
+                    Text(
+                      'Dinero',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: const Color(0xFFFFD700),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      sign.dinero,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Salud
+                    Text(
+                      'Salud',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: const Color(0xFFFFD700),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      sign.salud,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+      child: Ink(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFF2C1B47),
+              Color(0xFF12061F),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(color: const Color(0xFFFFD54F), width: 1),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                sign.nombre,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                sign.fecha,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: Colors.white70,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 
 /// ------------------- PERFIL / AJUSTES -------------------
 class SettingsScreen extends StatefulWidget {

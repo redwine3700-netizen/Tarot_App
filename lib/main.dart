@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'models/api_models.dart';
+
 
 
 /// MODELO DE CARTA DE TAROT
@@ -151,6 +153,31 @@ final List<TarotCard> cartasTarot = [
     imagePath: 'assets/tarot/mundo.png',
   ),
 ];
+enum YesNoResult { yes, no, maybe }
+
+const Map<String, YesNoResult> yesNoMap = {
+  'El Sol': YesNoResult.yes,
+  'El Mundo': YesNoResult.yes,
+  'La Estrella': YesNoResult.yes,
+  'El Carro': YesNoResult.yes,
+  'El Mago': YesNoResult.yes,
+  'La Emperatriz': YesNoResult.yes,
+  'La Fuerza': YesNoResult.yes,
+  'La Templanza': YesNoResult.yes,
+
+  'La Torre': YesNoResult.no,
+  'El Diablo': YesNoResult.no,
+  'La Muerte': YesNoResult.no,
+
+  'El Colgado': YesNoResult.maybe,
+  'La Rueda de la Fortuna': YesNoResult.maybe,
+  'El Ermitaño': YesNoResult.maybe,
+  'La Luna': YesNoResult.maybe,
+  'La Justicia': YesNoResult.maybe,
+  'El Juicio': YesNoResult.maybe,
+
+  // El resto, si no está aquí, los trataremos como "Tal vez" por defecto
+};
 
 /// GESTOR DE CARTA DEL DÍA (persistente)
 class DailyCardManager {
@@ -653,31 +680,173 @@ class TarotScreen extends StatefulWidget {
 }
 
 class _TarotScreenState extends State<TarotScreen> {
+  // Carta del día
   TarotCard? cartaDelDia;
-  List<TarotCard>? tiradaTres;
-
   bool cartaDelDiaRevelada = false;
+
+  // Tirada de 3 cartas
+  List<TarotCard>? tiradaTres;
   List<bool> tiradaRevelada = [];
+  TarotReadingResponse? _lecturaTresCartas;
+
+  // Pregunta SÍ / NO
+  TarotCard? _cartaSiNo;
+  String? _resultadoSiNo; // "Sí", "No" o "Tal vez"
+  String? _mensajeSiNo;
+
+  // Tirada de letras A/B/C
+  List<TarotCard>? _tiradaLetras;
+  int? _indiceLetraElegida; // 0 = A, 1 = B, 2 = C
+
+  // ----------------- LÓGICA CARTA DEL DÍA -----------------
 
   void _mostrarCartaDelDia() async {
     final carta = await DailyCardManager.getOrGenerateDailyCard();
     setState(() {
       cartaDelDia = carta;
-      tiradaTres = null;
       cartaDelDiaRevelada = false;
+
+      // Limpiamos otros modos
+      tiradaTres = null;
+      tiradaRevelada = [];
+      _lecturaTresCartas = null;
+
+      _cartaSiNo = null;
+      _resultadoSiNo = null;
+      _mensajeSiNo = null;
+
+      _tiradaLetras = null;
+      _indiceLetraElegida = null;
     });
   }
 
+  // ----------------- LÓGICA TIRADA 3 CARTAS -----------------
+
   void _tirarTresCartas() {
-    final random = Random();
-    final indices = <int>{};
-    while (indices.length < 3) {
-      indices.add(random.nextInt(cartasTarot.length));
-    }
     setState(() {
-      tiradaTres = indices.map((i) => cartasTarot[i]).toList();
+      final cartasBarajadas = [...cartasTarot]..shuffle();
+      tiradaTres = cartasBarajadas.take(3).toList();
+      tiradaRevelada = [false, false, false];
+
+      // Limpiamos otros modos
       cartaDelDia = null;
-      tiradaRevelada = List<bool>.filled(3, false);
+      cartaDelDiaRevelada = false;
+
+      _cartaSiNo = null;
+      _resultadoSiNo = null;
+      _mensajeSiNo = null;
+
+      _tiradaLetras = null;
+      _indiceLetraElegida = null;
+
+      _lecturaTresCartas = _generarLecturaTresCartasLocal(
+        tiradaTres![0],
+        tiradaTres![1],
+        tiradaTres![2],
+      );
+    });
+  }
+
+  TarotReadingResponse _generarLecturaTresCartasLocal(
+      TarotCard pasada,
+      TarotCard presente,
+      TarotCard futura,
+      ) {
+    final titulo =
+        'Una historia entre ${pasada.nombre}, ${presente.nombre} y ${futura.nombre}';
+
+    final resumen =
+        'Tu lectura muestra un proceso que va desde la energía de ${pasada.nombre.toLowerCase()} '
+        'hasta la influencia de ${futura.nombre.toLowerCase()}, con ${presente.nombre.toLowerCase()} marcando tu presente. '
+        'Las cartas hablan de un camino que se está moviendo y de decisiones que te acercan a una versión más auténtica de ti.';
+
+    final textoPasado =
+        'En tu PASADO, ${pasada.nombre} sugiere: ${pasada.significado}';
+
+    final textoPresente =
+        'En tu PRESENTE, ${presente.nombre} señala: ${presente.significado}';
+
+    final textoFuturo =
+        'De cara al FUTURO, ${futura.nombre} te invita a: ${futura.significado}';
+
+    final consejo =
+        'En conjunto, estas tres cartas te recuerdan que cada etapa ha tenido un sentido. '
+        'Honra lo que ya viviste, observa con honestidad lo que estás decidiendo hoy '
+        'y permite que el futuro te sorprenda sin aferrarte a lo que ya no encaja con tu alma.';
+
+    return TarotReadingResponse(
+      title: titulo,
+      summary: resumen,
+      past: textoPasado,
+      present: textoPresente,
+      future: textoFuturo,
+      advice: consejo,
+    );
+  }
+
+  // ----------------- LÓGICA SÍ / NO -----------------
+
+  void _hacerPreguntaSiNo() {
+    final cartasBarajadas = [...cartasTarot]..shuffle();
+    final carta = cartasBarajadas.first;
+
+    final tipo = yesNoMap[carta.nombre] ?? YesNoResult.maybe;
+
+    String resultado;
+    String mensaje;
+
+    switch (tipo) {
+      case YesNoResult.yes:
+        resultado = 'Sí';
+        mensaje =
+        'La energía de ${carta.nombre} se inclina claramente hacia un SÍ. '
+            'Esta carta habla de avance, apertura y puertas que se abren. '
+            'Si tu corazón siente entusiasmo y coherencia, este es un buen momento para confiar.';
+        break;
+      case YesNoResult.no:
+        resultado = 'No';
+        mensaje =
+        '${carta.nombre} señala que, por ahora, la respuesta se inclina hacia un NO. '
+            'Puede que no sea el momento, que falte información o que algo no esté alineado contigo. '
+            'Tómate un tiempo para revisar tus motivos y proteger tu energía.';
+        break;
+      case YesNoResult.maybe:
+        resultado = 'Tal vez / Aún no';
+        mensaje =
+        'Con ${carta.nombre}, la respuesta no es un sí o un no absoluto. '
+            'Esta carta habla de procesos, cambios y tiempos que aún se están acomodando. '
+            'La vida te invita a observar más, esperar señales y no forzar la situación todavía.';
+        break;
+    }
+
+    setState(() {
+      _cartaSiNo = carta;
+      _resultadoSiNo = resultado;
+      _mensajeSiNo = mensaje;
+
+      // No tocamos las otras tiradas aquí
+    });
+  }
+
+  // ----------------- LÓGICA TIRADA DE LETRAS A/B/C -----------------
+
+  void _prepararTiradaLetras() {
+    setState(() {
+      final cartasBarajadas = [...cartasTarot]..shuffle();
+      _tiradaLetras = cartasBarajadas.take(3).toList();
+      _indiceLetraElegida = null;
+
+      // Limpiamos otros modos
+      cartaDelDia = null;
+      cartaDelDiaRevelada = false;
+
+      tiradaTres = null;
+      tiradaRevelada = [];
+      _lecturaTresCartas = null;
+
+      _cartaSiNo = null;
+      _resultadoSiNo = null;
+      _mensajeSiNo = null;
     });
   }
 
@@ -712,6 +881,8 @@ class _TarotScreenState extends State<TarotScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
+
+                // Botones de modos
                 ElevatedButton(
                   onPressed: _mostrarCartaDelDia,
                   child: const Text('Carta del día'),
@@ -721,59 +892,192 @@ class _TarotScreenState extends State<TarotScreen> {
                   onPressed: _tirarTresCartas,
                   child: const Text('Tirada de 3 cartas'),
                 ),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: _prepararTiradaLetras,
+                  child: const Text('Tirada de letras (A, B, C)'),
+                ),
+
                 const SizedBox(height: 24),
 
+                // ---------------- CARTA DEL DÍA ----------------
                 if (cartaDelDia != null) ...[
                   Text(
                     'Toca la carta para revelar tu mensaje:',
                     style: theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 12),
-                  _buildFlipCard(
-                    revelada: cartaDelDiaRevelada,
-                    onTap: () {
-                      setState(() {
-                        cartaDelDiaRevelada = true;
-                      });
-                    },
-                    backChild: _buildBackCardContent(),
-                    frontChild: _buildFrontCardContent(
-                      titulo: 'Carta del día',
-                      nombre: cartaDelDia!.nombre,
-                      significado: cartaDelDia!.significado,
-                      imagePath: cartaDelDia!.imagePath,
-                      theme: theme,
+                  SizedBox(
+                    height: 230,
+                    child: _buildFlipCard(
+                      revelada: cartaDelDiaRevelada,
+                      onTapReveal: () {
+                        setState(() {
+                          cartaDelDiaRevelada = true;
+                        });
+                      },
+                      onTapWhenRevealed: () {
+                        if (cartaDelDia != null) {
+                          _mostrarCartaDetalle(context, cartaDelDia!, 'Carta del día');
+                        }
+                      },
+                      backChild: _buildBackCardContent(),
+                      frontChild: _buildFrontCardThumbnail(
+                        cartaDelDia!.imagePath,
+                      ),
                     ),
                   ),
+                  const SizedBox(height: 24),
                 ],
 
+                // ---------------- TIRADA DE 3 CARTAS ----------------
                 if (tiradaTres != null) ...[
                   Text(
                     'Toca cada carta para revelar Pasado, Presente y Futuro:',
                     style: theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 12),
-                  for (var i = 0; i < tiradaTres!.length; i++) ...[
-                    _buildFlipCard(
-                      revelada: tiradaRevelada[i],
-                      onTap: () {
-                        setState(() {
-                          tiradaRevelada[i] = true;
-                        });
-                      },
-                      backChild: _buildBackCardContent(
-                        etiqueta: ['Pasado', 'Presente', 'Futuro'][i],
-                      ),
-                      frontChild: _buildFrontCardContent(
-                        titulo: ['Pasado', 'Presente', 'Futuro'][i],
-                        nombre: tiradaTres![i].nombre,
-                        significado: tiradaTres![i].significado,
-                        imagePath: tiradaTres![i].imagePath,
-                        theme: theme,
+
+                  // Fila con las 3 cartas
+                  SizedBox(
+                    height: 210, // ajusta si las quieres un poquito más altas/bajas
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (var i = 0; i < tiradaTres!.length; i++) ...[
+                          Expanded(
+                            child: _buildFlipCard(
+                              revelada: tiradaRevelada[i],
+                              onTapReveal: () {
+                                setState(() {
+                                  tiradaRevelada[i] = true;
+                                });
+                              },
+                              onTapWhenRevealed: () {
+                                final tituloPosicion = ['Pasado', 'Presente', 'Futuro'][i];
+                                _mostrarCartaDetalle(
+                                  context,
+                                  tiradaTres![i],
+                                  tituloPosicion,
+                                );
+                              },
+                              backChild: _buildBackCardContent(
+                                etiqueta: ['Pasado', 'Presente', 'Futuro'][i],
+                              ),
+                              frontChild: _buildFrontCardThumbnail(
+                                tiradaTres![i].imagePath,
+                              ),
+                            ),
+                          ),
+                          if (i < tiradaTres!.length - 1) const SizedBox(width: 8),
+                        ],
+                      ],
+                    ),
+                  ),
+
+
+                const SizedBox(height: 24),
+                  if (_lecturaTresCartas != null) ...[
+                    Text(
+                      'Lectura general',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFFFFD700),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
+                    _buildLecturaTresCartasCard(theme),
                   ],
+                  const SizedBox(height: 24),
+                ],
+
+                // ---------------- TIRADA DE LETRAS A/B/C ----------------
+                if (_tiradaLetras != null) ...[
+                  Text(
+                    'Tirada de letras (A, B, C)',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFFFFD700),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Piensa en una situación o tema y elige la letra que más te llame: '
+                        'A, B o C. Esa será tu carta y tu mensaje.',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildLetraOption(
+                          letra: 'A',
+                          index: 0,
+                          theme: theme,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildLetraOption(
+                          letra: 'B',
+                          index: 1,
+                          theme: theme,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildLetraOption(
+                          letra: 'C',
+                          index: 2,
+                          theme: theme,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_indiceLetraElegida != null) ...[
+                    const SizedBox(height: 16),
+                    _buildResultadoLetra(theme),
+                  ],
+                  const SizedBox(height: 24),
+                ],
+
+                // ---------------- PREGUNTA SÍ / NO ----------------
+                const SizedBox(height: 8),
+                Text(
+                  'Pregunta de SÍ / NO',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFFFFD700),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Piensa en una pregunta que pueda responderse con sí o no. '
+                      'Respira profundo, concéntrate un momento y cuando te sientas listo, toca el botón.',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.center,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFFD700),
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                    ),
+                    onPressed: _hacerPreguntaSiNo,
+                    child: const Text('Revelar respuesta'),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (_cartaSiNo != null) ...[
+                  _buildResultadoSiNo(theme),
                 ],
               ],
             ),
@@ -783,14 +1087,222 @@ class _TarotScreenState extends State<TarotScreen> {
     );
   }
 
+  // ---------------- WIDGETS DE APOYO ----------------
+
+  Widget _buildLetraOption({
+    required String letra,
+    required int index,
+    required ThemeData theme,
+  }) {
+    final seleccionada = _indiceLetraElegida == index;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () {
+        setState(() {
+          _indiceLetraElegida = index;
+        });
+      },
+      child: Ink(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFF2C1B47),
+              Color(0xFF160B2A),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(
+            color: seleccionada
+                ? const Color(0xFFFFD700)
+                : Colors.white24,
+            width: seleccionada ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              letra,
+              style: theme.textTheme.headlineMedium?.copyWith(
+                color: const Color(0xFFFFD700),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Elegir',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Colors.white70,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResultadoLetra(ThemeData theme) {
+    final indice = _indiceLetraElegida!;
+    final carta = _tiradaLetras![indice];
+    final letra = ['A', 'B', 'C'][indice];
+
+    return Card(
+      color: const Color(0xFF160B2A),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: const BorderSide(
+          color: Color(0xFFFFD700),
+          width: 1,
+        ),
+      ),
+      elevation: 6,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Mensaje para la letra $letra',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFFFFD700),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: AspectRatio(
+                  aspectRatio: 3 / 5,
+                  child: Image.asset(
+                    carta.imagePath,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Center(
+              child: Text(
+                carta.nombre,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              carta.significado,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.white,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResultadoSiNo(ThemeData theme) {
+    final carta = _cartaSiNo!;
+    final resultado = _resultadoSiNo ?? '';
+    final mensaje = _mensajeSiNo ?? '';
+
+    Color colorResultado;
+    if (resultado.startsWith('Sí')) {
+      colorResultado = const Color(0xFF4CAF50); // verde
+    } else if (resultado.startsWith('No')) {
+      colorResultado = const Color(0xFFF44336); // rojo
+    } else {
+      colorResultado = const Color(0xFFFFD700); // dorado
+    }
+
+    return Card(
+      color: const Color(0xFF160B2A),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: const BorderSide(
+          color: Color(0xFFFFD700),
+          width: 1,
+        ),
+      ),
+      elevation: 6,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: AspectRatio(
+                  aspectRatio: 3 / 5,
+                  child: Image.asset(
+                    carta.imagePath,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: Text(
+                'Respuesta: $resultado',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorResultado,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Center(
+              child: Text(
+                carta.nombre,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              mensaje,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.white,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildFlipCard({
     required bool revelada,
-    required VoidCallback onTap,
+    required VoidCallback onTapReveal,
+    VoidCallback? onTapWhenRevealed,
     required Widget backChild,
     required Widget frontChild,
   }) {
     return GestureDetector(
-      onTap: revelada ? null : onTap,
+      onTap: () {
+        if (!revelada) {
+          // Primer toque: revelar carta
+          onTapReveal();
+        } else {
+          // Segundo toque: mostrar en grande (si se definió)
+          if (onTapWhenRevealed != null) {
+            onTapWhenRevealed!();
+          }
+        }
+      },
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         transitionBuilder: (child, animation) {
@@ -806,6 +1318,32 @@ class _TarotScreenState extends State<TarotScreen> {
       ),
     );
   }
+  Widget _buildFrontCardThumbnail(String imagePath) {
+    return Card(
+      key: const ValueKey('frontThumb'),
+      color: Colors.black,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: const BorderSide(
+          color: Color(0xFFFFD700),
+          width: 2,
+        ),
+      ),
+      elevation: 10,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: AspectRatio(
+          aspectRatio: 3 / 5,
+          child: Image.asset(
+            imagePath,
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+    );
+  }
+
+
 
   Widget _buildBackCardContent({String etiqueta = 'Carta de tarot'}) {
     return Card(
@@ -831,9 +1369,6 @@ class _TarotScreenState extends State<TarotScreen> {
       ),
     );
   }
-
-
-
 
   Widget _buildFrontCardContent({
     required String titulo,
@@ -905,6 +1440,175 @@ class _TarotScreenState extends State<TarotScreen> {
       ),
     );
   }
+
+  Widget _buildLecturaTresCartasCard(ThemeData theme) {
+    final lectura = _lecturaTresCartas!;
+    return Card(
+      color: const Color(0xFF160B2A),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: const BorderSide(
+          color: Color(0xFFFFD700),
+          width: 1,
+        ),
+      ),
+      elevation: 6,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              lectura.title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              lectura.summary,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.white70,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildLecturaSection('Pasado', lectura.past, theme),
+            const SizedBox(height: 12),
+            _buildLecturaSection('Presente', lectura.present, theme),
+            const SizedBox(height: 12),
+            _buildLecturaSection('Futuro', lectura.future, theme),
+            const SizedBox(height: 16),
+            Text(
+              'Consejo',
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: const Color(0xFFFFD700),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              lectura.advice,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.white,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLecturaSection(
+      String titulo,
+      String texto,
+      ThemeData theme,
+      ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          titulo,
+          style: theme.textTheme.titleSmall?.copyWith(
+            color: const Color(0xFFFFD700),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          texto,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: Colors.white,
+            height: 1.4,
+          ),
+        ),
+      ],
+    );
+  }
+}
+void _mostrarCartaDetalle(
+    BuildContext context,
+    TarotCard carta,
+    String contextoTitulo,
+    ) {
+  final theme = Theme.of(context);
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: const Color(0xFF12051F),
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (ctx) {
+      return DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.9,
+        maxChildSize: 0.95,
+        minChildSize: 0.6,
+        builder: (context, scrollController) {
+          return SingleChildScrollView(
+            controller: scrollController,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                Text(
+                  contextoTitulo,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: const Color(0xFFFFD700),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  carta.nombre,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: AspectRatio(
+                      aspectRatio: 3 / 5,
+                      child: Image.asset(
+                        carta.imagePath,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  carta.significado,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Colors.white,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
 /// ------------------- HORÓSCOPOS -------------------

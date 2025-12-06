@@ -2,6 +2,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/api_models.dart';
+import 'package:sensors_plus/sensors_plus.dart';
+import 'dart:async';
+
 
 
 
@@ -691,12 +694,20 @@ class _TarotScreenState extends State<TarotScreen> {
 
   // Pregunta SÍ / NO
   TarotCard? _cartaSiNo;
-  String? _resultadoSiNo; // "Sí", "No" o "Tal vez"
+  String? _resultadoSiNo;
   String? _mensajeSiNo;
 
   // Tirada de letras A/B/C
   List<TarotCard>? _tiradaLetras;
-  int? _indiceLetraElegida; // 0 = A, 1 = B, 2 = C
+  int? _indiceLetraElegida;
+
+  // Juego de fichas (20 letras, elige 6)
+  static const int _totalFichas = 20;
+  static const int _maxFichasSeleccionadas = 6;
+  List<String> _fichasLetras = [];
+  List<bool> _fichasReveladas = [];
+  int _contadorFichasSeleccionadas = 0;
+  bool _juegoFichasIniciado = false;
 
   // ----------------- LÓGICA CARTA DEL DÍA -----------------
 
@@ -706,7 +717,65 @@ class _TarotScreenState extends State<TarotScreen> {
       cartaDelDia = carta;
       cartaDelDiaRevelada = false;
 
-      // Limpiamos otros modos
+      tiradaTres = null;
+      tiradaRevelada = [];
+      _lecturaTresCartas = null;
+
+      _tiradaLetras = null;
+      _indiceLetraElegida = null;
+
+      _cartaSiNo = null;
+      _resultadoSiNo = null;
+      _mensajeSiNo = null;
+
+      _juegoFichasIniciado = false;
+      _fichasLetras = [];
+      _fichasReveladas = [];
+      _contadorFichasSeleccionadas = 0;
+    });
+  }
+
+  // ----------------- LÓGICA TIRADA 3 CARTAS -----------------
+
+  void _tirarTresCartas() {
+    final cartasBarajadas = [...cartasTarot]..shuffle();
+    final seleccionadas = cartasBarajadas.take(3).toList();
+    setState(() {
+      tiradaTres = seleccionadas;
+      tiradaRevelada = [false, false, false];
+
+      _lecturaTresCartas = _generarLecturaTresCartasLocal(
+        seleccionadas[0],
+        seleccionadas[1],
+        seleccionadas[2],
+      );
+
+      cartaDelDia = null;
+      cartaDelDiaRevelada = false;
+
+      _tiradaLetras = null;
+      _indiceLetraElegida = null;
+
+      _cartaSiNo = null;
+      _resultadoSiNo = null;
+      _mensajeSiNo = null;
+
+      _juegoFichasIniciado = false;
+      _fichasLetras = [];
+      _fichasReveladas = [];
+      _contadorFichasSeleccionadas = 0;
+    });
+  }
+
+  void _prepararTiradaLetras() {
+    final cartasBarajadas = [...cartasTarot]..shuffle();
+    setState(() {
+      _tiradaLetras = cartasBarajadas.take(3).toList();
+      _indiceLetraElegida = null;
+
+      cartaDelDia = null;
+      cartaDelDiaRevelada = false;
+
       tiradaTres = null;
       tiradaRevelada = [];
       _lecturaTresCartas = null;
@@ -715,35 +784,10 @@ class _TarotScreenState extends State<TarotScreen> {
       _resultadoSiNo = null;
       _mensajeSiNo = null;
 
-      _tiradaLetras = null;
-      _indiceLetraElegida = null;
-    });
-  }
-
-  // ----------------- LÓGICA TIRADA 3 CARTAS -----------------
-
-  void _tirarTresCartas() {
-    setState(() {
-      final cartasBarajadas = [...cartasTarot]..shuffle();
-      tiradaTres = cartasBarajadas.take(3).toList();
-      tiradaRevelada = [false, false, false];
-
-      // Limpiamos otros modos
-      cartaDelDia = null;
-      cartaDelDiaRevelada = false;
-
-      _cartaSiNo = null;
-      _resultadoSiNo = null;
-      _mensajeSiNo = null;
-
-      _tiradaLetras = null;
-      _indiceLetraElegida = null;
-
-      _lecturaTresCartas = _generarLecturaTresCartasLocal(
-        tiradaTres![0],
-        tiradaTres![1],
-        tiradaTres![2],
-      );
+      _juegoFichasIniciado = false;
+      _fichasLetras = [];
+      _fichasReveladas = [];
+      _contadorFichasSeleccionadas = 0;
     });
   }
 
@@ -823,32 +867,125 @@ class _TarotScreenState extends State<TarotScreen> {
       _cartaSiNo = carta;
       _resultadoSiNo = resultado;
       _mensajeSiNo = mensaje;
-
-      // No tocamos las otras tiradas aquí
     });
   }
 
-  // ----------------- LÓGICA TIRADA DE LETRAS A/B/C -----------------
+  // ----------------- LÓGICA JUEGO FICHAS -----------------
 
-  void _prepararTiradaLetras() {
+  void _iniciarJuegoFichas() {
+    const letras = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ';
+    final random = Random();
+
+    final List<String> nuevas = [];
+    for (int i = 0; i < _totalFichas; i++) {
+      nuevas.add(letras[random.nextInt(letras.length)]);
+    }
+
     setState(() {
-      final cartasBarajadas = [...cartasTarot]..shuffle();
-      _tiradaLetras = cartasBarajadas.take(3).toList();
-      _indiceLetraElegida = null;
-
-      // Limpiamos otros modos
-      cartaDelDia = null;
-      cartaDelDiaRevelada = false;
-
-      tiradaTres = null;
-      tiradaRevelada = [];
-      _lecturaTresCartas = null;
-
-      _cartaSiNo = null;
-      _resultadoSiNo = null;
-      _mensajeSiNo = null;
+      _fichasLetras = nuevas;
+      _fichasReveladas = List<bool>.filled(_totalFichas, false);
+      _contadorFichasSeleccionadas = 0;
+      _juegoFichasIniciado = true;
     });
   }
+
+  void _onTapFicha(int index) {
+    if (!_juegoFichasIniciado) return;
+    if (_fichasReveladas[index]) return;
+    if (_contadorFichasSeleccionadas >= _maxFichasSeleccionadas) return;
+
+    setState(() {
+      _fichasReveladas[index] = true;
+      _contadorFichasSeleccionadas++;
+    });
+  }
+
+  // ----------------- DETALLE EN MODAL -----------------
+
+  void _mostrarCartaDetalle(
+      BuildContext context,
+      TarotCard carta,
+      String contextoTitulo,
+      ) {
+    final theme = Theme.of(context);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF12051F),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.9,
+          maxChildSize: 0.95,
+          minChildSize: 0.6,
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  Text(
+                    contextoTitulo,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: const Color(0xFFFFD700),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    carta.nombre,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: AspectRatio(
+                        aspectRatio: 3 / 5,
+                        child: Image.asset(
+                          carta.imagePath,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    carta.significado,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.white,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ----------------- BUILD -----------------
 
   @override
   Widget build(BuildContext context) {
@@ -882,7 +1019,6 @@ class _TarotScreenState extends State<TarotScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Botones de modos
                 ElevatedButton(
                   onPressed: _mostrarCartaDelDia,
                   child: const Text('Carta del día'),
@@ -898,9 +1034,10 @@ class _TarotScreenState extends State<TarotScreen> {
                   child: const Text('Tirada de letras (A, B, C)'),
                 ),
 
+
                 const SizedBox(height: 24),
 
-                // ---------------- CARTA DEL DÍA ----------------
+                // -------- Carta del día --------
                 if (cartaDelDia != null) ...[
                   Text(
                     'Toca la carta para revelar tu mensaje:',
@@ -918,7 +1055,11 @@ class _TarotScreenState extends State<TarotScreen> {
                       },
                       onTapWhenRevealed: () {
                         if (cartaDelDia != null) {
-                          _mostrarCartaDetalle(context, cartaDelDia!, 'Carta del día');
+                          _mostrarCartaDetalle(
+                            context,
+                            cartaDelDia!,
+                            'Carta del día',
+                          );
                         }
                       },
                       backChild: _buildBackCardContent(),
@@ -929,18 +1070,45 @@ class _TarotScreenState extends State<TarotScreen> {
                   ),
                   const SizedBox(height: 24),
                 ],
+                ElevatedButton(
+                  onPressed: _mostrarCartaDelDia,
+                  child: const Text('Carta del día'),
+                ),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: _tirarTresCartas,
+                  child: const Text('Tirada de 3 cartas'),
+                ),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: _prepararTiradaLetras,
+                  child: const Text('Tirada de letras (A, B, C)'),
+                ),
+                const SizedBox(height: 8),
 
-                // ---------------- TIRADA DE 3 CARTAS ----------------
+// 👉 NUEVO BOTÓN PÉNDULO
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PendulumScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text('Péndulo (Sí / No)'),
+                ),
+
+
+                // -------- Tirada 3 cartas --------
                 if (tiradaTres != null) ...[
                   Text(
                     'Toca cada carta para revelar Pasado, Presente y Futuro:',
                     style: theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 12),
-
-                  // Fila con las 3 cartas
                   SizedBox(
-                    height: 210, // ajusta si las quieres un poquito más altas/bajas
+                    height: 210,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -954,7 +1122,8 @@ class _TarotScreenState extends State<TarotScreen> {
                                 });
                               },
                               onTapWhenRevealed: () {
-                                final tituloPosicion = ['Pasado', 'Presente', 'Futuro'][i];
+                                final tituloPosicion =
+                                ['Pasado', 'Presente', 'Futuro'][i];
                                 _mostrarCartaDetalle(
                                   context,
                                   tiradaTres![i],
@@ -969,14 +1138,13 @@ class _TarotScreenState extends State<TarotScreen> {
                               ),
                             ),
                           ),
-                          if (i < tiradaTres!.length - 1) const SizedBox(width: 8),
+                          if (i < tiradaTres!.length - 1)
+                            const SizedBox(width: 8),
                         ],
                       ],
                     ),
                   ),
-
-
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   if (_lecturaTresCartas != null) ...[
                     Text(
                       'Lectura general',
@@ -991,7 +1159,7 @@ class _TarotScreenState extends State<TarotScreen> {
                   const SizedBox(height: 24),
                 ],
 
-                // ---------------- TIRADA DE LETRAS A/B/C ----------------
+                // -------- Tirada letras A/B/C --------
                 if (_tiradaLetras != null) ...[
                   Text(
                     'Tirada de letras (A, B, C)',
@@ -1041,7 +1209,10 @@ class _TarotScreenState extends State<TarotScreen> {
                   const SizedBox(height: 24),
                 ],
 
-                // ---------------- PREGUNTA SÍ / NO ----------------
+                // -------- Juego fichas --------
+                _buildJuegoFichasSection(theme),
+
+                // -------- Pregunta SÍ / NO --------
                 const SizedBox(height: 8),
                 Text(
                   'Pregunta de SÍ / NO',
@@ -1087,7 +1258,7 @@ class _TarotScreenState extends State<TarotScreen> {
     );
   }
 
-  // ---------------- WIDGETS DE APOYO ----------------
+  // ----------------- WIDGETS DE APOYO -----------------
 
   Widget _buildLetraOption({
     required String letra,
@@ -1095,6 +1266,7 @@ class _TarotScreenState extends State<TarotScreen> {
     required ThemeData theme,
   }) {
     final seleccionada = _indiceLetraElegida == index;
+    final estaCarta = _tiradaLetras![index];
 
     return InkWell(
       borderRadius: BorderRadius.circular(16),
@@ -1104,7 +1276,7 @@ class _TarotScreenState extends State<TarotScreen> {
         });
       },
       child: Ink(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           gradient: const LinearGradient(
@@ -1127,14 +1299,15 @@ class _TarotScreenState extends State<TarotScreen> {
           children: [
             Text(
               letra,
-              style: theme.textTheme.headlineMedium?.copyWith(
+              style: theme.textTheme.headlineSmall?.copyWith(
                 color: const Color(0xFFFFD700),
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 4),
             Text(
-              'Elegir',
+              estaCarta.nombre,
+              textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: Colors.white70,
               ),
@@ -1206,6 +1379,119 @@ class _TarotScreenState extends State<TarotScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildJuegoFichasSection(ThemeData theme) {
+    const dorado = Color(0xFFFFD700);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Juego de letras: elige 6 fichas',
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Toca hasta 6 fichas para revelar letras. Después, deja que tu intuición juegue: '
+              '¿qué nombres o palabras te vienen a la mente?',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: Colors.white70,
+            height: 1.3,
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _iniciarJuegoFichas,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              foregroundColor: dorado,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+                side: const BorderSide(color: dorado),
+              ),
+            ),
+            child: Text(
+              _juegoFichasIniciado ? 'Volver a jugar' : 'Iniciar juego',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (_juegoFichasIniciado) ...[
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(_fichasLetras.length, (index) {
+              final revelada = _fichasReveladas[index];
+
+              return GestureDetector(
+                onTap: () => _onTapFicha(index),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 64,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: revelada ? dorado : dorado.withOpacity(0.6),
+                      width: 2,
+                    ),
+                    boxShadow: revelada
+                        ? [
+                      BoxShadow(
+                        color: dorado.withOpacity(0.4),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      ),
+                    ]
+                        : [],
+                  ),
+                  alignment: Alignment.center,
+                  child: revelada
+                      ? Text(
+                    _fichasLetras[index],
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: dorado,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                      : const Icon(
+                    Icons.star_border,
+                    color: dorado,
+                  ),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Fichas reveladas: $_contadorFichasSeleccionadas / $_maxFichasSeleccionadas',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: Colors.white70,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'No necesitas formar una palabra perfecta. Deja que las letras despierten recuerdos, nombres o ideas.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: Colors.white60,
+              height: 1.3,
+            ),
+          ),
+        ],
+        const SizedBox(height: 24),
+      ],
     );
   }
 
@@ -1294,10 +1580,8 @@ class _TarotScreenState extends State<TarotScreen> {
     return GestureDetector(
       onTap: () {
         if (!revelada) {
-          // Primer toque: revelar carta
           onTapReveal();
         } else {
-          // Segundo toque: mostrar en grande (si se definió)
           if (onTapWhenRevealed != null) {
             onTapWhenRevealed!();
           }
@@ -1318,6 +1602,57 @@ class _TarotScreenState extends State<TarotScreen> {
       ),
     );
   }
+
+  Widget _buildBackCardContent({String etiqueta = 'Carta de tarot'}) {
+    return Card(
+      key: const ValueKey('back'),
+      color: Colors.black,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: const BorderSide(
+          color: Color(0xFFFFD700),
+          width: 2,
+        ),
+      ),
+      elevation: 10,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: AspectRatio(
+          aspectRatio: 3 / 5,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset(
+                'assets/tarot/reverso.png',
+                fit: BoxFit.cover,
+              ),
+              Positioned(
+                bottom: 8,
+                left: 0,
+                right: 0,
+                child: Text(
+                  etiqueta,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black,
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildFrontCardThumbnail(String imagePath) {
     return Card(
       key: const ValueKey('frontThumb'),
@@ -1338,104 +1673,6 @@ class _TarotScreenState extends State<TarotScreen> {
             imagePath,
             fit: BoxFit.cover,
           ),
-        ),
-      ),
-    );
-  }
-
-
-
-  Widget _buildBackCardContent({String etiqueta = 'Carta de tarot'}) {
-    return Card(
-      key: const ValueKey('back'),
-      color: Colors.black,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: const BorderSide(
-          color: Color(0xFFFFD700),
-          width: 2,
-        ),
-      ),
-      elevation: 10,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: AspectRatio(
-          aspectRatio: 3 / 5,
-          child: Image.asset(
-            'assets/tarot/reverso.png',
-            fit: BoxFit.cover,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFrontCardContent({
-    required String titulo,
-    required String nombre,
-    required String significado,
-    required String imagePath,
-    required ThemeData theme,
-  }) {
-    return Card(
-      key: const ValueKey('front'),
-      color: Colors.grey[900],
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(
-          color: Color(0xFFFFD700),
-          width: 1.5,
-        ),
-      ),
-      elevation: 6,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: AspectRatio(
-                aspectRatio: 3 / 5,
-                child: Image.asset(
-                  imagePath,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.black26,
-                      child: const Center(
-                        child: Icon(
-                          Icons.image_not_supported,
-                          color: Colors.white38,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              titulo,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: const Color(0xFFFFD700),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              nombre,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              significado,
-              style: theme.textTheme.bodyMedium,
-            ),
-          ],
         ),
       ),
     );
@@ -1528,297 +1765,27 @@ class _TarotScreenState extends State<TarotScreen> {
     );
   }
 }
-void _mostrarCartaDetalle(
-    BuildContext context,
-    TarotCard carta,
-    String contextoTitulo,
-    ) {
-  final theme = Theme.of(context);
-
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: const Color(0xFF12051F),
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-    ),
-    builder: (ctx) {
-      return DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.9,
-        maxChildSize: 0.95,
-        minChildSize: 0.6,
-        builder: (context, scrollController) {
-          return SingleChildScrollView(
-            controller: scrollController,
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                Text(
-                  contextoTitulo,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: const Color(0xFFFFD700),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  carta.nombre,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Center(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: AspectRatio(
-                      aspectRatio: 3 / 5,
-                      child: Image.asset(
-                        carta.imagePath,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  carta.significado,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.white,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      );
-    },
-  );
-}
-
 /// ------------------- HORÓSCOPOS -------------------
 class HoroscopeScreen extends StatelessWidget {
   const HoroscopeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Horóscopos'),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Elige tu signo',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: GridView.builder(
-                itemCount: signos.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 3 / 2,
-                ),
-                itemBuilder: (context, index) {
-                  final sign = signos[index];
-                  return _HoroscopeCard(sign: sign);
-                },
-              ),
-            ),
-          ],
+      body: const Center(
+        child: Text(
+          'Pantalla de horóscopos (pronto)',
+          style: TextStyle(color: Colors.white),
         ),
       ),
+      backgroundColor: Colors.black,
     );
   }
 }
-
-class _HoroscopeCard extends StatelessWidget {
-  final HoroscopeSign sign;
-
-  const _HoroscopeCard({required this.sign});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: () {
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: const Color(0xFF160B2A),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          builder: (context) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Cabecera: nombre + fecha
-                    Text(
-                      sign.nombre,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      sign.fecha,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.white70,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Resumen
-                    Text(
-                      'Resumen de hoy',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: const Color(0xFFFFD700),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      sign.resumenHoy,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white,
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Amor
-                    Text(
-                      'Amor',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: const Color(0xFFFFD700),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      sign.amor,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white,
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Dinero
-                    Text(
-                      'Dinero',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: const Color(0xFFFFD700),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      sign.dinero,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white,
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Salud
-                    Text(
-                      'Salud',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: const Color(0xFFFFD700),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      sign.salud,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-      child: Ink(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: const LinearGradient(
-            colors: [
-              Color(0xFF2C1B47),
-              Color(0xFF12061F),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          border: Border.all(color: const Color(0xFFFFD54F), width: 1),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                sign.nombre,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                sign.fecha,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: Colors.white70,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 
 /// ------------------- PERFIL / AJUSTES -------------------
 class SettingsScreen extends StatefulWidget {
@@ -1884,8 +1851,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     DropdownButton<String>(
                       dropdownColor: Colors.black,
                       value: _signoSeleccionado,
-                      icon:
-                      const Icon(Icons.arrow_drop_down, color: Colors.white),
+                      icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
                       items: signos
                           .map(
                             (s) => DropdownMenuItem<String>(
@@ -2017,6 +1983,353 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// ------------------- PÉNDULO VISTA SUPERIOR -------------------
+class PendulumScreen extends StatefulWidget {
+  const PendulumScreen({super.key});
+
+  @override
+  State<PendulumScreen> createState() => _PendulumScreenState();
+}
+
+class _PendulumScreenState extends State<PendulumScreen>
+    with SingleTickerProviderStateMixin {
+  String? _pregunta;
+  String? _resultado;
+  String? _mensaje;
+
+  // Posición actual y objetivo (acelerómetro)
+  double _offsetX = 0.0;
+  double _offsetY = 0.0;
+  double _targetX = 0.0;
+  double _targetY = 0.0;
+
+  // Medición de velocidad del movimiento
+  double _speed = 0.0;
+  double _lastX = 0.0, _lastY = 0.0;
+
+  // Ángulo para la órbita elíptica cuando el celu está quieto
+  double _orbitAngle = 0.0;
+
+  late AnimationController _pulseController;
+  StreamSubscription<AccelerometerEvent>? _accelSub;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Pulso suave (respiración del péndulo)
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+
+    // Escuchar acelerómetro
+    _accelSub = accelerometerEvents.listen((event) {
+      const factor = 3.5; // qué tan fuerte responde al movimiento
+
+      final x = (event.x * factor).clamp(-60.0, 60.0);
+      final y = (event.y * factor).clamp(-60.0, 60.0);
+
+      setState(() {
+        _targetX = x;
+        _targetY = y;
+      });
+    });
+
+    // Inercia + velocidad + avance del ángulo para órbita
+    Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        const suavizado = 0.08;
+
+        final oldX = _offsetX;
+        final oldY = _offsetY;
+
+        // La posición actual persigue al objetivo (inercia)
+        _offsetX += (_targetX - _offsetX) * suavizado;
+        _offsetY += (_targetY - _offsetY) * suavizado;
+
+        // Velocidad estimada
+        final vx = _offsetX - oldX;
+        final vy = _offsetY - oldY;
+        final instante = sqrt(vx * vx + vy * vy);
+
+        _speed = _speed * 0.85 + instante * 0.15;
+
+        // Avanza el ángulo de órbita (para el movimiento elíptico
+        _orbitAngle += 0.03; // más grande = gira más rápido
+        if (_orbitAngle > 2 * pi) {
+          _orbitAngle -= 2 * pi;
+        }
+
+        _lastX = _offsetX;
+        _lastY = _offsetY;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _accelSub?.cancel();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  void _consultarPendulo() {
+    final random = Random();
+    final valor = random.nextInt(3); // 0,1,2
+
+    String resultado;
+    String mensaje;
+
+    if (valor == 0) {
+      resultado = 'Sí';
+      mensaje =
+      'La energía del péndulo se alinea hacia un SÍ. Confía en ese impulso interior que ya sientes.';
+    } else if (valor == 1) {
+      resultado = 'No';
+      mensaje =
+      'El movimiento se inclina hacia el NO. Tal vez no sea el momento, o el camino necesita ajustes.';
+    } else {
+      resultado = 'Tal vez / Aún no';
+      mensaje =
+      'La energía todavía no se define por completo. Observa, date tiempo y vuelve a preguntar cuando lo sientas.';
+    }
+
+    setState(() {
+      _resultado = resultado;
+      _mensaje = mensaje;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Péndulo'),
+        centerTitle: true,
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.black,
+              Color(0xFF130024),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Text(
+                  'Coloca el teléfono lo más plano posible, conecta con tu pregunta\n'
+                      'y observa cómo se mueve el péndulo sobre el cosmos.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Colors.white70,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                TextField(
+                  style: const TextStyle(color: Colors.white),
+                  cursorColor: const Color(0xFFFFD700),
+                  decoration: InputDecoration(
+                    labelText: 'Escribe tu pregunta (opcional)',
+                    labelStyle: const TextStyle(color: Colors.white70),
+                    filled: true,
+                    fillColor: const Color(0xFF1A0C2D),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(
+                        color: Colors.white38,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFFFD700),
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    _pregunta = value;
+                  },
+                ),
+
+                const SizedBox(height: 24),
+
+                // --------- VISTA SUPERIOR DEL PÉNDULO ---------
+                SizedBox(
+                  height: 260,
+                  child: AnimatedBuilder(
+                    animation: _pulseController,
+                    builder: (context, child) {
+                      // Pulso (respiración)
+                      final t = _pulseController.value;
+                      final scale = 1.0 + sin(t * 2 * pi) * 0.04;
+
+                      // ¿Celular quieto?
+                      final bool isStill = _speed < 1.0;
+                      final double idleFactor = isStill ? 1.0 : 0.25;
+
+                      // Órbita elíptica en vista top (círculo / elipse)
+                      const double idleRadius = 10.0;
+                      final double orbitX =
+                          cos(_orbitAngle) * idleRadius * idleFactor;
+                      final double orbitY =
+                          sin(_orbitAngle) * idleRadius * 0.7 * idleFactor;
+
+                      // Posición base por acelerómetro
+                      const double basePenduloY = 20.0;
+                      final double baseX = _offsetX;
+                      final double baseY = _offsetY + basePenduloY;
+
+                      // Posición final = acelerómetro + órbita
+                      final double tipX = baseX + orbitX;
+                      final double tipY = baseY + orbitY;
+
+                      // -------- CADENA CORTA ENCIMA DEL PÉNDULO (como en tu dibujo) --------
+                      const int segmentos = 4;        // 3–4 perlitas
+                      const double chainLength = 70.0; // largo hacia “adelante”
+
+                      final double anchorX = tipX;
+                      final double anchorY = tipY + 10.0; // nace justo debajo del centro del cristal
+
+                      final List<Widget> chain = [];
+                      for (int i = 1; i <= segmentos; i++) {
+                        final double factor = i / (segmentos + 1); // 0..1
+
+                        // Las perlitas van saliendo “hacia abajo” (hacia el frente)
+                        final double dx = anchorX;
+                        final double dy = anchorY + factor * chainLength;
+
+                        // Más grandes mientras se acercan
+                        final double esferaScale = 0.7 + factor * 0.4;
+                        final double esferaSize = 18.0 * esferaScale;
+
+                        final bool esVioleta = i.isOdd;
+                        final String assetEsfera = esVioleta
+                            ? 'assets/tarot/pendulo_chain_violeta.png'
+                            : 'assets/tarot/pendulo_chain_rosa.png';
+
+                        chain.add(
+                          Transform.translate(
+                            offset: Offset(dx, dy),
+                            child: Image.asset(
+                              assetEsfera,
+                              width: esferaSize,
+                              height: esferaSize,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        );
+                      }
+
+                      return Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Fondo James Webb + círculos
+                          Image.asset(
+                            'assets/tarot/pendulo_top_bg.png',
+                            fit: BoxFit.contain,
+                          ),
+
+                          // Péndulo (pentágono) al fondo, con órbita
+                          Transform.translate(
+                            offset: Offset(tipX, tipY),
+                            child: Transform.scale(
+                              scale: scale,
+                              child: Image.asset(
+                                'assets/tarot/pendulo_top_cristal.png',
+                                width: 110,
+                                height: 110,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+
+                          // Perlitas delante, SIEMPRE visibles siguiendo al péndulo
+                          ...chain,
+                        ],
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFFD700),
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  onPressed: _consultarPendulo,
+                  child: const Text(
+                    'Consultar péndulo',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                if (_resultado != null) ...[
+                  Text(
+                    'Respuesta: $_resultado',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: const Color(0xFFFFD700),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (_pregunta != null && _pregunta!.trim().isNotEmpty) ...[
+                    Text(
+                      'Pregunta: "${_pregunta!}"',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.white60,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  Text(
+                    _mensaje ?? '',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.white70,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

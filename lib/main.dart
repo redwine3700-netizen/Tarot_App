@@ -462,9 +462,9 @@ class TranslationService {
 
 
 class HoroscopeApiService {
-  // Nueva API más estable
+  // Base de la API (sin /daily para poder usar weekly y monthly también)
   static const _baseUrl =
-      'https://horoscope-app-api.vercel.app/api/v1/get-horoscope/daily';
+      'https://horoscope-app-api.vercel.app/api/v1/get-horoscope';
 
   static String _mapSpanishToEnglishSign(String nombre) {
     switch (nombre.toLowerCase()) {
@@ -499,36 +499,85 @@ class HoroscopeApiService {
     }
   }
 
-  static Future<DailyHoroscope> fetchTodayForSign(String nombreSigno) async {
+  /// Método interno que llama a daily/weekly/monthly y traduce al español.
+  static Future<DailyHoroscope> _fetchAndTranslate({
+    required String endpoint, // '/daily', '/weekly', '/monthly'
+    required String nombreSigno,
+    String? day, // solo se usa para daily
+  }) async {
     final signEn = _mapSpanishToEnglishSign(nombreSigno);
 
-    // Usamos la nueva API
-    final uri = Uri.parse('$_baseUrl?sign=$signEn&day=today');
+    final buffer = StringBuffer('$_baseUrl$endpoint?sign=$signEn');
+    if (day != null) {
+      buffer.write('&day=$day');
+    }
+    final uri = Uri.parse(buffer.toString());
 
     final response = await http.get(uri);
 
     if (response.statusCode != 200) {
       throw Exception(
-          'Error ${response.statusCode} al obtener horóscopo para "$nombreSigno" (enviado "$signEn")');
+        'Error ${response.statusCode} al obtener horóscopo para "$nombreSigno" (modo $endpoint, enviado "$signEn")',
+      );
     }
 
     final body = json.decode(response.body) as Map<String, dynamic>;
-    final data = (body['data'] ?? {}) as Map<String, dynamic>;
+    final dynamic rawData = body['data'];
 
-    final englishDescription = data['horoscope_data']?.toString() ?? '';
+    // Normalizamos "data" a un Map<String,dynamic>
+    final Map<String, dynamic> data;
+    if (rawData is Map<String, dynamic>) {
+      data = rawData;
+    } else {
+      data = {'horoscope_data': rawData};
+    }
 
-    // 👇 Aquí traducimos a español usando la clase TranslationService
+    final englishDescription =
+    (data['horoscope_data'] ?? data['horoscope'] ?? rawData ?? '')
+        .toString();
+
+    // Traducción al español (si falla, devuelve el texto original)
     final spanishDescription =
     await TranslationService.toSpanish(englishDescription);
 
+    final mood = data['mood']?.toString() ?? '—';
+    final color = data['color']?.toString() ?? '—';
+    final luckyNumber = (data['lucky_number'] ?? '—').toString();
+
     return DailyHoroscope(
       description: spanishDescription,
-      mood: data['mood']?.toString() ?? '—',
-      color: data['color']?.toString() ?? '—',
-      luckyNumber: (data['lucky_number'] ?? '—').toString(),
+      mood: mood,
+      color: color,
+      luckyNumber: luckyNumber,
+    );
+  }
+
+  // 🔸 Diario (lo que ya teníamos)
+  static Future<DailyHoroscope> fetchTodayForSign(String nombreSigno) {
+    return _fetchAndTranslate(
+      endpoint: '/daily',
+      nombreSigno: nombreSigno,
+      day: 'today',
+    );
+  }
+
+  // 🔸 Semanal
+  static Future<DailyHoroscope> fetchWeeklyForSign(String nombreSigno) {
+    return _fetchAndTranslate(
+      endpoint: '/weekly',
+      nombreSigno: nombreSigno,
+    );
+  }
+
+  // 🔸 Mensual
+  static Future<DailyHoroscope> fetchMonthlyForSign(String nombreSigno) {
+    return _fetchAndTranslate(
+      endpoint: '/monthly',
+      nombreSigno: nombreSigno,
     );
   }
 }
+
 
 
 /// APP ROOT
@@ -2012,10 +2061,62 @@ class _TarotScreenState extends State<TarotScreen> {
   );
   }
   }
-class HoroscopeDetailScreen extends StatelessWidget {
+enum HoroscopePeriod {
+  daily,
+  weekly,
+  monthly,
+}
+
+
+
+class HoroscopeDetailScreen extends StatefulWidget {
   final HoroscopeSign signo;
 
   const HoroscopeDetailScreen({super.key, required this.signo});
+
+  @override
+  State<HoroscopeDetailScreen> createState() => _HoroscopeDetailScreenState();
+}
+
+class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
+  HoroscopePeriod _period = HoroscopePeriod.daily;
+  late Future<DailyHoroscope> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _loadForPeriod();
+  }
+
+  Future<DailyHoroscope> _loadForPeriod() {
+    switch (_period) {
+      case HoroscopePeriod.daily:
+        return HoroscopeApiService.fetchTodayForSign(widget.signo.nombre);
+      case HoroscopePeriod.weekly:
+        return HoroscopeApiService.fetchWeeklyForSign(widget.signo.nombre);
+      case HoroscopePeriod.monthly:
+        return HoroscopeApiService.fetchMonthlyForSign(widget.signo.nombre);
+    }
+  }
+
+  void _setPeriod(HoroscopePeriod period) {
+    if (_period == period) return;
+    setState(() {
+      _period = period;
+      _future = _loadForPeriod();
+    });
+  }
+
+  String _periodLabel() {
+    switch (_period) {
+      case HoroscopePeriod.daily:
+        return 'Horóscopo diario';
+      case HoroscopePeriod.weekly:
+        return 'Horóscopo semanal';
+      case HoroscopePeriod.monthly:
+        return 'Horóscopo mensual';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2023,68 +2124,18 @@ class HoroscopeDetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(signo.nombre),
+        title: Text(widget.signo.nombre),
         centerTitle: true,
       ),
       backgroundColor: Colors.black,
-      body: FutureBuilder<DailyHoroscope>(
-        future: HoroscopeApiService.fetchTodayForSign(signo.nombre),
-        builder: (context, snapshot) {
-          // ⏳ Cargando
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          // ✅ Si la API responde bien, usamos esos datos
-          if (snapshot.hasData) {
-            final h = snapshot.data!;
-            return _buildContent(
-              theme,
-              titulo: signo.nombre,
-              rangoFechas: signo.fecha,
-              descripcion: h.description,
-              mood: h.mood,
-              color: h.color,
-              numero: h.luckyNumber,
-              avisoLocal: null,
-            );
-          }
-
-          // ❌ Si hay error o no hay datos → usamos TU texto local
-          return _buildContent(
-            theme,
-            titulo: signo.nombre,
-            rangoFechas: signo.fecha,
-            descripcion: signo.resumenHoy,
-            mood: '—',
-            color: '—',
-            numero: '—',
-            avisoLocal:
-            'Mostrando texto guardado porque el servicio en línea no está disponible.',
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildContent(
-      ThemeData theme, {
-        required String titulo,
-        required String rangoFechas,
-        required String descripcion,
-        required String mood,
-        required String color,
-        required String numero,
-        String? avisoLocal,
-      }) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: SingleChildScrollView(
+      body: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Título signo + fechas
             Text(
-              titulo,
+              widget.signo.nombre,
               style: theme.textTheme.headlineSmall?.copyWith(
                 color: const Color(0xFFFFD700),
                 fontWeight: FontWeight.bold,
@@ -2092,47 +2143,132 @@ class HoroscopeDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              rangoFechas,
+              widget.signo.fecha,
               style:
               theme.textTheme.bodySmall?.copyWith(color: Colors.white70),
             ),
             const SizedBox(height: 16),
-            Text(
-              descripcion,
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(height: 1.4, color: Colors.white),
+
+            // Botones Diario / Semanal / Mensual
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildPeriodChip('Diario', HoroscopePeriod.daily),
+                const SizedBox(width: 8),
+                _buildPeriodChip('Semanal', HoroscopePeriod.weekly),
+                const SizedBox(width: 8),
+                _buildPeriodChip('Mensual', HoroscopePeriod.monthly),
+              ],
             ),
-            const SizedBox(height: 16),
-            if (avisoLocal != null) ...[
-              Text(
-                avisoLocal,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: Colors.amberAccent),
+            const SizedBox(height: 12),
+            Text(
+              _periodLabel(),
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: Colors.white70),
+            ),
+            const SizedBox(height: 12),
+
+            // Contenido scrollable
+            Expanded(
+              child: FutureBuilder<DailyHoroscope>(
+                future: _future,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasData) {
+                    final h = snapshot.data!;
+                    return _buildContent(
+                      theme,
+                      descripcion: h.description,
+                      mood: h.mood,
+                      color: h.color,
+                      numero: h.luckyNumber,
+                      avisoLocal: null,
+                    );
+                  }
+
+                  // Fallback: mostramos tu resumen local si la API falla
+                  return _buildContent(
+                    theme,
+                    descripcion: widget.signo.resumenHoy,
+                    mood: '—',
+                    color: '—',
+                    numero: '—',
+                    avisoLocal:
+                    'Mostrando texto guardado porque el servicio en línea no está disponible.',
+                  );
+                },
               ),
-              const SizedBox(height: 12),
-            ],
-            Text(
-              'Ánimo: $mood',
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: Colors.white70),
-            ),
-            Text(
-              'Color de la suerte: $color',
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: Colors.white70),
-            ),
-            Text(
-              'Número de la suerte: $numero',
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: Colors.white70),
             ),
           ],
         ),
       ),
     );
   }
-}
 
+  Widget _buildPeriodChip(String label, HoroscopePeriod period) {
+    final bool selected = _period == period;
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      selectedColor: const Color(0xFFFFD700),
+      backgroundColor: Colors.grey[850],
+      labelStyle: TextStyle(
+        color: selected ? Colors.black : Colors.white70,
+        fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+      ),
+      onSelected: (_) => _setPeriod(period),
+    );
+  }
+
+  Widget _buildContent(
+      ThemeData theme, {
+        required String descripcion,
+        required String mood,
+        required String color,
+        required String numero,
+        String? avisoLocal,
+      }) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            descripcion,
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(height: 1.4, color: Colors.white),
+          ),
+          const SizedBox(height: 16),
+          if (avisoLocal != null) ...[
+            Text(
+              avisoLocal,
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: Colors.amberAccent),
+            ),
+            const SizedBox(height: 12),
+          ],
+          Text(
+            'Ánimo: $mood',
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(color: Colors.white70),
+          ),
+          Text(
+            'Color de la suerte: $color',
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(color: Colors.white70),
+          ),
+          Text(
+            'Número de la suerte: $numero',
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(color: Colors.white70),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 /// ------------------- PERFIL / AJUSTES -------------------
 class SettingsScreen extends StatefulWidget {

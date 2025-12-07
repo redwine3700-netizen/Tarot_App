@@ -2144,8 +2144,9 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
             const SizedBox(height: 4),
             Text(
               widget.signo.fecha,
-              style:
-              theme.textTheme.bodySmall?.copyWith(color: Colors.white70),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Colors.white70,
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -2163,8 +2164,9 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
             const SizedBox(height: 12),
             Text(
               _periodLabel(),
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: Colors.white70),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Colors.white70,
+              ),
             ),
             const SizedBox(height: 12),
 
@@ -2231,44 +2233,67 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
         required String numero,
         String? avisoLocal,
       }) {
+    // Decidimos si mostramos o no los datos extra
+    final showMood = mood.trim().isNotEmpty && mood.trim() != '—';
+    final showColor = color.trim().isNotEmpty && color.trim() != '—';
+    final showNumero = numero.trim().isNotEmpty && numero.trim() != '—';
+    final showExtras = showMood || showColor || showNumero;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Texto principal del horóscopo
           Text(
             descripcion,
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(height: 1.4, color: Colors.white),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              height: 1.4,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(height: 16),
+
+          // Aviso cuando usamos el texto local
           if (avisoLocal != null) ...[
             Text(
               avisoLocal,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: Colors.amberAccent),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Colors.amberAccent,
+              ),
             ),
             const SizedBox(height: 12),
           ],
-          Text(
-            'Ánimo: $mood',
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(color: Colors.white70),
-          ),
-          Text(
-            'Color de la suerte: $color',
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(color: Colors.white70),
-          ),
-          Text(
-            'Número de la suerte: $numero',
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(color: Colors.white70),
-          ),
+
+          // Solo mostramos estos tres si NO son "—" ni vacíos
+          if (showExtras) ...[
+            if (showMood)
+              Text(
+                'Ánimo: $mood',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.white70,
+                ),
+              ),
+            if (showColor)
+              Text(
+                'Color de la suerte: $color',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.white70,
+                ),
+              ),
+            if (showNumero)
+              Text(
+                'Número de la suerte: $numero',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.white70,
+                ),
+              ),
+          ],
         ],
       ),
     );
   }
 }
+
 
 /// ------------------- PERFIL / AJUSTES -------------------
 class SettingsScreen extends StatefulWidget {

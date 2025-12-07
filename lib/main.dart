@@ -4,8 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'models/api_models.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'dart:async';
-
-
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 
 /// MODELO DE CARTA DE TAROT
@@ -385,6 +385,151 @@ final List<HoroscopeSign> signos = [
     salud: 'El descanso emocional es clave: música, agua, silencio.',
   ),
 ];
+/// MODELO DE HORÓSCOPO DIARIO OBTENIDO DESDE API
+// Modelo (déjalo como lo tienes o así):
+class DailyHoroscope {
+  final String description;
+  final String mood;
+  final String color;
+  final String luckyNumber;
+
+  DailyHoroscope({
+    required this.description,
+    required this.mood,
+    required this.color,
+    required this.luckyNumber,
+  });
+
+  factory DailyHoroscope.fromJson(Map<String, dynamic> json) {
+    return DailyHoroscope(
+      description: json['description'] as String? ?? '',
+      mood: json['mood'] as String? ?? '',
+      color: json['color'] as String? ?? '',
+      luckyNumber: json['lucky_number']?.toString() ?? '',
+    );
+  }
+}
+
+/// SERVICIO DE TRADUCCIÓN (inglés → español) usando Google Cloud Translate
+class TranslationService {
+  // 👉 AQUÍ PEGAS TU API KEY DE GOOGLE
+  static const _apiKey = 'AIzaSyA7NUebUIBZi4WwwSSFaCgbSsd1MKevCj4';
+
+  static const _url =
+      'https://translation.googleapis.com/language/translate/v2';
+
+  static Future<String> toSpanish(String text) async {
+    if (text.trim().isEmpty) return text;
+
+    try {
+      final uri = Uri.parse('$_url?key=$_apiKey');
+
+      final response = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        body: jsonEncode({
+          'q': text,
+          'source': 'en',
+          'target': 'es',
+          'format': 'text',
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        // Si falla la traducción, devolvemos el texto original (en inglés)
+        return text;
+      }
+
+      final data = json.decode(response.body) as Map<String, dynamic>;
+      final translations = data['data']?['translations'] as List<dynamic>?;
+
+      if (translations == null || translations.isEmpty) {
+        return text;
+      }
+
+      final translatedText =
+          translations.first['translatedText']?.toString() ?? text;
+
+      return translatedText;
+    } catch (_) {
+      // Si hay cualquier error de red, devolvemos el original
+      return text;
+    }
+  }
+}
+
+
+class HoroscopeApiService {
+  // Nueva API más estable
+  static const _baseUrl =
+      'https://horoscope-app-api.vercel.app/api/v1/get-horoscope/daily';
+
+  static String _mapSpanishToEnglishSign(String nombre) {
+    switch (nombre.toLowerCase()) {
+      case 'aries':
+        return 'aries';
+      case 'tauro':
+        return 'taurus';
+      case 'géminis':
+      case 'geminis':
+        return 'gemini';
+      case 'cáncer':
+      case 'cancer':
+        return 'cancer';
+      case 'leo':
+        return 'leo';
+      case 'virgo':
+        return 'virgo';
+      case 'libra':
+        return 'libra';
+      case 'escorpio':
+        return 'scorpio';
+      case 'sagitario':
+        return 'sagittarius';
+      case 'capricornio':
+        return 'capricorn';
+      case 'acuario':
+        return 'aquarius';
+      case 'piscis':
+        return 'pisces';
+      default:
+        return 'aries';
+    }
+  }
+
+  static Future<DailyHoroscope> fetchTodayForSign(String nombreSigno) async {
+    final signEn = _mapSpanishToEnglishSign(nombreSigno);
+
+    // Usamos la nueva API
+    final uri = Uri.parse('$_baseUrl?sign=$signEn&day=today');
+
+    final response = await http.get(uri);
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          'Error ${response.statusCode} al obtener horóscopo para "$nombreSigno" (enviado "$signEn")');
+    }
+
+    final body = json.decode(response.body) as Map<String, dynamic>;
+    final data = (body['data'] ?? {}) as Map<String, dynamic>;
+
+    final englishDescription = data['horoscope_data']?.toString() ?? '';
+
+    // 👇 Aquí traducimos a español usando la clase TranslationService
+    final spanishDescription =
+    await TranslationService.toSpanish(englishDescription);
+
+    return DailyHoroscope(
+      description: spanishDescription,
+      mood: data['mood']?.toString() ?? '—',
+      color: data['color']?.toString() ?? '—',
+      luckyNumber: (data['lucky_number'] ?? '—').toString(),
+    );
+  }
+}
+
 
 /// APP ROOT
 void main() {
@@ -491,6 +636,10 @@ class _HomeScreenState extends State<HomeScreen> {
   HoroscopeSign? _signoPreferido;
   bool _cargandoSigno = true;
 
+  DailyHoroscope? _horoscopoHoy;
+  bool _cargandoHoroscopo = true;
+  String? _errorHoroscopo;
+
   @override
   void initState() {
     super.initState();
@@ -512,7 +661,52 @@ class _HomeScreenState extends State<HomeScreen> {
       _signoPreferido = signo;
       _cargandoSigno = false;
     });
+
+    if (signo != null) {
+      await _cargarHoroscopoHoy();
+    } else {
+      setState(() {
+        _cargandoHoroscopo = false;
+      });
+    }
   }
+
+  Future<void> _cargarHoroscopoHoy() async {
+    final signo = _signoPreferido;
+    if (signo == null) {
+      setState(() {
+        _cargandoHoroscopo = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _cargandoHoroscopo = true;
+      _errorHoroscopo = null;
+    });
+
+    try {
+      final data = await HoroscopeApiService.fetchTodayForSign(signo.nombre);
+      setState(() {
+        _horoscopoHoy = data;
+        _cargandoHoroscopo = false;
+        _errorHoroscopo = null;
+      });
+    } catch (e) {
+      // 👉 Si la API falla, usamos tu texto local
+      setState(() {
+        _horoscopoHoy = DailyHoroscope(
+          description: signo.resumenHoy,
+          mood: '—',
+          color: '—',
+          luckyNumber: '—',
+        );
+        _cargandoHoroscopo = false;
+        _errorHoroscopo = null; // no mostramos error
+      });
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -555,39 +749,33 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ] else if (_cartaDelDia != null) ...[
-                    // 👉 Imagen de la carta del día
                     ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child: AspectRatio(
                         aspectRatio: 3 / 5,
                         child: Image.asset(
-                          _cartaDelDia!.imagePath, // usa tu imagePath
+                          _cartaDelDia!.imagePath,
                           fit: BoxFit.cover,
                         ),
                       ),
                     ),
                     const SizedBox(height: 12),
-
-                    // 👉 Nombre de la carta
                     Text(
                       _cartaDelDia!.nombre,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 4),
-
-                    // 👉 Significado corto
                     Text(
                       _cartaDelDia!.significado,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: theme.textTheme.bodyMedium,
                     ),
                   ] else ...[
                     const Text('Aún no hay carta del día disponible'),
-                  ]
-
+                  ],
                 ],
               ),
             ),
@@ -615,9 +803,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  if (_cargandoSigno)
-                    const Text('Cargando tu signo preferido...')
-                  else if (_signoPreferido != null) ...[
+                  if (_cargandoSigno || _cargandoHoroscopo)
+                    const Text('Cargando tu horóscopo de hoy...')
+                  else if (_signoPreferido != null &&
+                      _horoscopoHoy != null) ...[
                     Text(
                       _signoPreferido!.nombre,
                       style: const TextStyle(
@@ -627,13 +816,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _signoPreferido!.resumenHoy,
+                      _horoscopoHoy!.description,
                       style: theme.textTheme.bodyMedium,
                     ),
-                  ] else
+                    const SizedBox(height: 8),
+                    Text(
+                      'Ánimo de hoy: ${_horoscopoHoy!.mood}',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    Text(
+                      'Color de la suerte: ${_horoscopoHoy!.color}  •  Número: ${_horoscopoHoy!.luckyNumber}',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ] else if (_errorHoroscopo != null) ...[
+                    Text(
+                      _errorHoroscopo!,
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: Colors.redAccent),
+                    ),
+                  ] else ...[
                     const Text(
                       'Configura tu signo en la pestaña Perfil para ver tu horóscopo aquí.',
                     ),
+                  ],
                 ],
               ),
             ),
@@ -1765,27 +1970,169 @@ class _TarotScreenState extends State<TarotScreen> {
     );
   }
 }
-/// ------------------- HORÓSCOPOS -------------------
-class HoroscopeScreen extends StatelessWidget {
+  /// ------------------- HORÓSCOPOS -------------------
+  class HoroscopeScreen extends StatelessWidget {
   const HoroscopeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+  final theme = Theme.of(context);
+
+  return Scaffold(
+  appBar: AppBar(
+  title: const Text('Horóscopos'),
+  centerTitle: true,
+  ),
+  backgroundColor: Colors.black,
+  body: ListView.builder(
+  itemCount: signos.length,
+  itemBuilder: (context, index) {
+  final signo = signos[index];
+  return ListTile(
+  leading: const Icon(Icons.nightlight_round, color: Color(0xFFFFD700)),
+  title: Text(
+  signo.nombre,
+  style: theme.textTheme.bodyLarge?.copyWith(color: Colors.white),
+  ),
+  subtitle: Text(
+  signo.fecha,
+  style: theme.textTheme.bodySmall?.copyWith(color: Colors.white70),
+  ),
+  trailing: const Icon(Icons.chevron_right, color: Colors.white70),
+  onTap: () {
+  Navigator.of(context).push(
+  MaterialPageRoute(
+  builder: (_) => HoroscopeDetailScreen(signo: signo),
+  ),
+  );
+  },
+  );
+  },
+  ),
+  );
+  }
+  }
+class HoroscopeDetailScreen extends StatelessWidget {
+  final HoroscopeSign signo;
+
+  const HoroscopeDetailScreen({super.key, required this.signo});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Horóscopos'),
+        title: Text(signo.nombre),
         centerTitle: true,
       ),
-      body: const Center(
-        child: Text(
-          'Pantalla de horóscopos (pronto)',
-          style: TextStyle(color: Colors.white),
+      backgroundColor: Colors.black,
+      body: FutureBuilder<DailyHoroscope>(
+        future: HoroscopeApiService.fetchTodayForSign(signo.nombre),
+        builder: (context, snapshot) {
+          // ⏳ Cargando
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // ✅ Si la API responde bien, usamos esos datos
+          if (snapshot.hasData) {
+            final h = snapshot.data!;
+            return _buildContent(
+              theme,
+              titulo: signo.nombre,
+              rangoFechas: signo.fecha,
+              descripcion: h.description,
+              mood: h.mood,
+              color: h.color,
+              numero: h.luckyNumber,
+              avisoLocal: null,
+            );
+          }
+
+          // ❌ Si hay error o no hay datos → usamos TU texto local
+          return _buildContent(
+            theme,
+            titulo: signo.nombre,
+            rangoFechas: signo.fecha,
+            descripcion: signo.resumenHoy,
+            mood: '—',
+            color: '—',
+            numero: '—',
+            avisoLocal:
+            'Mostrando texto guardado porque el servicio en línea no está disponible.',
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildContent(
+      ThemeData theme, {
+        required String titulo,
+        required String rangoFechas,
+        required String descripcion,
+        required String mood,
+        required String color,
+        required String numero,
+        String? avisoLocal,
+      }) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              titulo,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: const Color(0xFFFFD700),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              rangoFechas,
+              style:
+              theme.textTheme.bodySmall?.copyWith(color: Colors.white70),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              descripcion,
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(height: 1.4, color: Colors.white),
+            ),
+            const SizedBox(height: 16),
+            if (avisoLocal != null) ...[
+              Text(
+                avisoLocal,
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(color: Colors.amberAccent),
+              ),
+              const SizedBox(height: 12),
+            ],
+            Text(
+              'Ánimo: $mood',
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(color: Colors.white70),
+            ),
+            Text(
+              'Color de la suerte: $color',
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(color: Colors.white70),
+            ),
+            Text(
+              'Número de la suerte: $numero',
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(color: Colors.white70),
+            ),
+          ],
         ),
       ),
-      backgroundColor: Colors.black,
     );
   }
 }
+
 
 /// ------------------- PERFIL / AJUSTES -------------------
 class SettingsScreen extends StatefulWidget {
@@ -1988,6 +2335,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 }
 
+enum PendulumPattern {
+  none,
+  yesVertical,   // SÍ → arriba / abajo
+  noHorizontal,  // NO → izquierda / derecha
+  maybeCircle,   // TAL VEZ → movimiento circular / elíptico
+}
+
 /// ------------------- PÉNDULO VISTA SUPERIOR -------------------
 class PendulumScreen extends StatefulWidget {
   const PendulumScreen({super.key});
@@ -2002,18 +2356,26 @@ class _PendulumScreenState extends State<PendulumScreen>
   String? _resultado;
   String? _mensaje;
 
-  // Posición actual y objetivo (acelerómetro)
+  // Movimiento base (acelerómetro + órbita)
   double _offsetX = 0.0;
   double _offsetY = 0.0;
   double _targetX = 0.0;
   double _targetY = 0.0;
 
-  // Medición de velocidad del movimiento
   double _speed = 0.0;
   double _lastX = 0.0, _lastY = 0.0;
 
-  // Ángulo para la órbita elíptica cuando el celu está quieto
   double _orbitAngle = 0.0;
+
+  // Impulso extra cuando consultamos el péndulo
+  double _tapBoost = 0.0;
+
+  // Patrón según la respuesta
+  PendulumPattern _pattern = PendulumPattern.none;
+  double _patternPhase = 0.0;
+
+  // Pasos del ritual (texto de ayuda)
+  int _paso = 1;
 
   late AnimationController _pulseController;
   StreamSubscription<AccelerometerEvent>? _accelSub;
@@ -2030,7 +2392,7 @@ class _PendulumScreenState extends State<PendulumScreen>
 
     // Escuchar acelerómetro
     _accelSub = accelerometerEvents.listen((event) {
-      const factor = 3.5; // qué tan fuerte responde al movimiento
+      const factor = 3.5;
 
       final x = (event.x * factor).clamp(-60.0, 60.0);
       final y = (event.y * factor).clamp(-60.0, 60.0);
@@ -2041,37 +2403,54 @@ class _PendulumScreenState extends State<PendulumScreen>
       });
     });
 
-    // Inercia + velocidad + avance del ángulo para órbita
+    // Inercia + velocidad + órbita + fase de patrón + decaimiento del impulso
     Timer.periodic(const Duration(milliseconds: 16), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
       }
+
       setState(() {
         const suavizado = 0.08;
 
         final oldX = _offsetX;
         final oldY = _offsetY;
 
-        // La posición actual persigue al objetivo (inercia)
+        // Inercia hacia el objetivo
         _offsetX += (_targetX - _offsetX) * suavizado;
         _offsetY += (_targetY - _offsetY) * suavizado;
 
-        // Velocidad estimada
         final vx = _offsetX - oldX;
         final vy = _offsetY - oldY;
         final instante = sqrt(vx * vx + vy * vy);
 
         _speed = _speed * 0.85 + instante * 0.15;
 
-        // Avanza el ángulo de órbita (para el movimiento elíptico
-        _orbitAngle += 0.03; // más grande = gira más rápido
+        // Órbita base
+        _orbitAngle += 0.03;
         if (_orbitAngle > 2 * pi) {
           _orbitAngle -= 2 * pi;
         }
 
+        // Fase del patrón (SÍ / NO / TAL VEZ)
+        if (_pattern != PendulumPattern.none) {
+          _patternPhase += 0.08;
+          if (_patternPhase > 2 * pi) {
+            _patternPhase -= 2 * pi;
+          }
+        }
+
         _lastX = _offsetX;
         _lastY = _offsetY;
+
+        // El impulso extra se va apagando (controla cuánto rato “trabaja”)
+        if (_tapBoost > 0.0) {
+          _tapBoost *= 0.99; // más cerca de 1.0 = dura más tiempo
+          if (_tapBoost < 0.01) {
+            _tapBoost = 0.0;
+            _pattern = PendulumPattern.none;
+          }
+        }
       });
     });
   }
@@ -2083,30 +2462,135 @@ class _PendulumScreenState extends State<PendulumScreen>
     super.dispose();
   }
 
+  void _avanzarPaso() {
+    setState(() {
+      if (_paso < 3) {
+        _paso++;
+      } else {
+        _paso = 1;
+      }
+    });
+  }
+
+  Widget _buildGuiaPasos(ThemeData theme) {
+    String titulo;
+    String descripcion;
+    String textoBoton;
+
+    switch (_paso) {
+      case 1:
+        titulo = '1 • Formula tu pregunta';
+        descripcion =
+        'Piensa en una pregunta clara que pueda responderse con SÍ o NO. '
+            'Evita preguntas demasiado abiertas o con muchas condiciones. '
+            'Respira profundo y conecta con lo que de verdad quieres saber.';
+        textoBoton = 'Ya tengo mi pregunta';
+        break;
+      case 2:
+        titulo = '2 • Equilibra el péndulo';
+        descripcion =
+        'Apoya el celular sobre una superficie lo más plana posible. '
+            'Espera unos segundos mientras el movimiento se calma. '
+            'Cuando sientas que todo está estable, pasa al siguiente paso.';
+        textoBoton = 'Péndulo equilibrado';
+        break;
+      case 3:
+      default:
+        titulo = '3 • Observa la respuesta';
+        descripcion =
+        'Mantén tu pregunta en mente y observa el movimiento desde la vista superior:\n\n'
+            '• Más vertical (arriba / abajo) → energía hacia un SÍ.\n'
+            '• Más horizontal (izquierda / derecha) → energía hacia un NO.\n'
+            '• Más circular o elíptico → TAL VEZ / AÚN NO.\n\n'
+            'Tómalo como una guía energética, no como una sentencia absoluta.';
+        textoBoton = 'Volver a empezar';
+        break;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          titulo,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: const Color(0xFFFFD700),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          descripcion,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: Colors.white70,
+            height: 1.4,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.center,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFFD700),
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 12,
+              ),
+            ),
+            onPressed: _avanzarPaso,
+            child: Text(textoBoton),
+          ),
+        ),
+      ],
+    );
+  }
+
   void _consultarPendulo() {
     final random = Random();
     final valor = random.nextInt(3); // 0,1,2
 
     String resultado;
     String mensaje;
+    PendulumPattern patron;
 
     if (valor == 0) {
       resultado = 'Sí';
       mensaje =
-      'La energía del péndulo se alinea hacia un SÍ. Confía en ese impulso interior que ya sientes.';
+      'La energía del péndulo se alinea hacia un SÍ. Observa un movimiento más vertical, como respirando de arriba hacia abajo.';
+      patron = PendulumPattern.yesVertical;
     } else if (valor == 1) {
       resultado = 'No';
       mensaje =
-      'El movimiento se inclina hacia el NO. Tal vez no sea el momento, o el camino necesita ajustes.';
+      'El movimiento se inclina hacia el NO. El vaivén horizontal indica que la energía se desvía de ese camino.';
+      patron = PendulumPattern.noHorizontal;
     } else {
       resultado = 'Tal vez / Aún no';
       mensaje =
-      'La energía todavía no se define por completo. Observa, date tiempo y vuelve a preguntar cuando lo sientas.';
+      'La energía todavía no se define por completo. El movimiento circular o elíptico muestra que hay variables en juego.';
+      patron = PendulumPattern.maybeCircle;
     }
 
+    // 1) Al tocar el botón: limpiamos respuesta visible y disparamos movimiento
     setState(() {
-      _resultado = resultado;
-      _mensaje = mensaje;
+      _resultado = null;
+      _mensaje = null;
+
+      _tapBoost = 1.0;        // mucho movimiento al comienzo
+      _pattern = patron;      // patrón según la respuesta
+      _patternPhase = 0.0;
+    });
+
+    // 2) Después de unos segundos, mostramos la respuesta (cuando ya casi se ha calmado)
+    Timer(const Duration(seconds: 6), () {
+      if (!mounted) return;
+
+      setState(() {
+        _resultado = resultado;
+        _mensaje = mensaje;
+      });
     });
   }
 
@@ -2135,16 +2619,9 @@ class _PendulumScreenState extends State<PendulumScreen>
           child: SingleChildScrollView(
             child: Column(
               children: [
-                Text(
-                  'Coloca el teléfono lo más plano posible, conecta con tu pregunta\n'
-                      'y observa cómo se mueve el péndulo sobre el cosmos.',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.white70,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 16),
+                _buildGuiaPasos(theme),
+
+                const SizedBox(height: 24),
 
                 TextField(
                   style: const TextStyle(color: Colors.white),
@@ -2183,46 +2660,98 @@ class _PendulumScreenState extends State<PendulumScreen>
                     builder: (context, child) {
                       // Pulso (respiración)
                       final t = _pulseController.value;
-                      final scale = 1.0 + sin(t * 2 * pi) * 0.04;
+                      final double baseScale =
+                          1.0 + sin(t * 2 * pi) * 0.04;
+                      final double scaleBoost =
+                          1.0 + _tapBoost * 0.18;
+                      final double scale =
+                          baseScale * scaleBoost;
 
                       // ¿Celular quieto?
                       final bool isStill = _speed < 1.0;
-                      final double idleFactor = isStill ? 1.0 : 0.25;
+                      final double idleFactor =
+                      isStill ? 1.0 : 0.25;
 
-                      // Órbita elíptica en vista top (círculo / elipse)
-                      const double idleRadius = 10.0;
+                      // Órbita base
+                      final double idleRadiusBase =
+                          10.0 + _tapBoost * 40.0;
                       final double orbitX =
-                          cos(_orbitAngle) * idleRadius * idleFactor;
+                          cos(_orbitAngle) *
+                              idleRadiusBase *
+                              idleFactor;
                       final double orbitY =
-                          sin(_orbitAngle) * idleRadius * 0.7 * idleFactor;
+                          sin(_orbitAngle) *
+                              idleRadiusBase *
+                              0.7 *
+                              idleFactor;
 
                       // Posición base por acelerómetro
                       const double basePenduloY = 20.0;
                       final double baseX = _offsetX;
-                      final double baseY = _offsetY + basePenduloY;
+                      final double baseY =
+                          _offsetY + basePenduloY;
 
-                      // Posición final = acelerómetro + órbita
-                      final double tipX = baseX + orbitX;
-                      final double tipY = baseY + orbitY;
+                      // Patrón extra de respuesta (SÍ / NO / TAL VEZ)
+                      double patternX = 0.0;
+                      double patternY = 0.0;
+                      const double patternAmplitude = 32.0;
 
-                      // -------- CADENA CORTA ENCIMA DEL PÉNDULO (como en tu dibujo) --------
-                      const int segmentos = 4;        // 3–4 perlitas
-                      const double chainLength = 70.0; // largo hacia “adelante”
+                      if (_tapBoost > 0.0 &&
+                          _pattern != PendulumPattern.none) {
+                        final double a = _patternPhase;
+
+                        switch (_pattern) {
+                          case PendulumPattern.yesVertical:
+                            patternY = sin(a) *
+                                patternAmplitude *
+                                _tapBoost;
+                            break;
+                          case PendulumPattern.noHorizontal:
+                            patternX = sin(a) *
+                                patternAmplitude *
+                                _tapBoost;
+                            break;
+                          case PendulumPattern.maybeCircle:
+                            patternX = cos(a) *
+                                patternAmplitude *
+                                _tapBoost;
+                            patternY = sin(a) *
+                                patternAmplitude *
+                                0.7 *
+                                _tapBoost;
+                            break;
+                          case PendulumPattern.none:
+                            break;
+                        }
+                      }
+
+                      // Posición final
+                      final double tipX =
+                          baseX + orbitX + patternX;
+                      final double tipY =
+                          baseY + orbitY + patternY;
+
+                      // Cadena de perlitas hacia “adelante”
+                      const int segmentos = 5;
+                      const double chainLength = 70.0;
 
                       final double anchorX = tipX;
-                      final double anchorY = tipY + 10.0; // nace justo debajo del centro del cristal
+                      final double anchorY =
+                          tipY + 10.0;
 
                       final List<Widget> chain = [];
                       for (int i = 1; i <= segmentos; i++) {
-                        final double factor = i / (segmentos + 1); // 0..1
+                        final double factor =
+                            i / (segmentos + 1);
 
-                        // Las perlitas van saliendo “hacia abajo” (hacia el frente)
                         final double dx = anchorX;
-                        final double dy = anchorY + factor * chainLength;
+                        final double dy =
+                            anchorY + factor * chainLength;
 
-                        // Más grandes mientras se acercan
-                        final double esferaScale = 0.7 + factor * 0.4;
-                        final double esferaSize = 18.0 * esferaScale;
+                        final double esferaScale =
+                            0.7 + factor * 0.4;
+                        final double esferaSize =
+                            18.0 * esferaScale;
 
                         final bool esVioleta = i.isOdd;
                         final String assetEsfera = esVioleta
@@ -2245,13 +2774,10 @@ class _PendulumScreenState extends State<PendulumScreen>
                       return Stack(
                         alignment: Alignment.center,
                         children: [
-                          // Fondo James Webb + círculos
                           Image.asset(
                             'assets/tarot/pendulo_top_bg.png',
                             fit: BoxFit.contain,
                           ),
-
-                          // Péndulo (pentágono) al fondo, con órbita
                           Transform.translate(
                             offset: Offset(tipX, tipY),
                             child: Transform.scale(
@@ -2264,8 +2790,6 @@ class _PendulumScreenState extends State<PendulumScreen>
                               ),
                             ),
                           ),
-
-                          // Perlitas delante, SIEMPRE visibles siguiendo al péndulo
                           ...chain,
                         ],
                       );
@@ -2306,11 +2830,13 @@ class _PendulumScreenState extends State<PendulumScreen>
                     ),
                   ),
                   const SizedBox(height: 12),
-                  if (_pregunta != null && _pregunta!.trim().isNotEmpty) ...[
+                  if (_pregunta != null &&
+                      _pregunta!.trim().isNotEmpty) ...[
                     Text(
                       'Pregunta: "${_pregunta!}"',
                       textAlign: TextAlign.center,
-                      style: theme.textTheme.bodySmall?.copyWith(
+                      style:
+                      theme.textTheme.bodySmall?.copyWith(
                         color: Colors.white60,
                         fontStyle: FontStyle.italic,
                       ),
@@ -2320,7 +2846,8 @@ class _PendulumScreenState extends State<PendulumScreen>
                   Text(
                     _mensaje ?? '',
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
+                    style:
+                    theme.textTheme.bodyMedium?.copyWith(
                       color: Colors.white70,
                       height: 1.4,
                     ),

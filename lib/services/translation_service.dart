@@ -3,11 +3,18 @@ import 'package:http/http.dart' as http;
 
 /// SERVICIO DE TRADUCCIÓN (inglés → español) usando Google Cloud Translate
 class TranslationService {
-  // 👉 Reemplaza por tu API KEY real de Google
-  static const _apiKey = 'TU_API_KEY_DE_GOOGLE_TRANSLATE';
+  // 🔐 Pon aquí tu API key real
+  static const _apiKey = 'AIzaSyA7NUebUIBZi4WwwSSFaCgbSsd1MKevCj4';
 
   static const _url =
       'https://translation.googleapis.com/language/translate/v2';
+
+  static String _cleanHtmlEntities(String text) {
+    return text
+        .replaceAll('&#39;', "'")
+        .replaceAll('&quot;', '"')
+        .replaceAll('&amp;', '&');
+  }
 
   static Future<String> toSpanish(String text) async {
     if (text.trim().isEmpty) return text;
@@ -29,6 +36,7 @@ class TranslationService {
       );
 
       if (response.statusCode != 200) {
+        // Si falla la API, devolvemos el texto original en inglés
         return text;
       }
 
@@ -42,8 +50,9 @@ class TranslationService {
       final translatedText =
           translations.first['translatedText']?.toString() ?? text;
 
-      return translatedText;
+      return _cleanHtmlEntities(translatedText);
     } catch (_) {
+      // Cualquier error de red o parsing → devolvemos el texto original
       return text;
     }
   }

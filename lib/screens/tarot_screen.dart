@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 
 import '../models/tarot_models.dart';
 import 'pendulum_screen.dart';
+import 'mystic_tools_screen.dart';
+
+enum TarotFocus { love, work, money }
 
 class TarotScreen extends StatefulWidget {
   const TarotScreen({super.key});
@@ -13,6 +16,8 @@ class TarotScreen extends StatefulWidget {
 
 class _TarotScreenState extends State<TarotScreen> {
   final Random _random = Random();
+
+  TarotFocus _currentFocus = TarotFocus.love;
 
   // Tirada 3 cartas
   List<TarotCard>? _lecturaTresCartas;
@@ -31,6 +36,74 @@ class _TarotScreenState extends State<TarotScreen> {
   List<bool> _fichasReveladas = [];
   int _contadorFichasSeleccionadas = 0;
   bool _juegoFichasIniciado = false;
+
+  // ----------------- TEXTOS SEGÚN ENFOQUE -----------------
+
+  String _focusLabel() {
+    switch (_currentFocus) {
+      case TarotFocus.love:
+        return 'Amor';
+      case TarotFocus.work:
+        return 'Trabajo';
+      case TarotFocus.money:
+        return 'Dinero';
+    }
+  }
+
+  String _title3Cards() {
+    switch (_currentFocus) {
+      case TarotFocus.love:
+        return '3 cartas para iluminar tu camino en el amor';
+      case TarotFocus.work:
+        return '3 cartas para entender tu camino laboral';
+      case TarotFocus.money:
+        return '3 cartas para desbloquear tu abundancia';
+    }
+  }
+
+  String _desc3Cards() {
+    switch (_currentFocus) {
+      case TarotFocus.love:
+        return 'Cierra los ojos, piensa en esa situación amorosa que te inquieta y deja que el tarot te susurre una respuesta.';
+      case TarotFocus.work:
+        return 'Piensa en tu trabajo, proyectos o metas. Estas cartas te mostrarán pasado, presente y tendencia en tu camino profesional.';
+      case TarotFocus.money:
+        return 'Conéctate con tus finanzas y deseos de estabilidad. Estas cartas te muestran qué energía rodea tu prosperidad y recursos.';
+    }
+  }
+
+  String _title6Cards() {
+    switch (_currentFocus) {
+      case TarotFocus.love:
+        return '¿Quién está pensando en ti?';
+      case TarotFocus.work:
+        return '¿Qué oportunidad se acerca?';
+      case TarotFocus.money:
+        return '¿Qué puerta de abundancia se abre?';
+    }
+  }
+
+  String _desc6Cards() {
+    switch (_currentFocus) {
+      case TarotFocus.love:
+        return 'Elige 6 cartas para intuir qué tipo de persona o energía amorosa podría estar acercándose a tu vida.';
+      case TarotFocus.work:
+        return 'Revela 6 cartas para intuir qué proyectos, personas o cambios laborales pueden estar tocando a tu puerta.';
+      case TarotFocus.money:
+        return 'Revela 6 cartas para intuir qué caminos, ideas o ayudas podrían abrirse para mejorar tu economía.';
+    }
+  }
+
+  String _labelJuegoFichas() {
+    switch (_currentFocus) {
+      case TarotFocus.love:
+        return 'Deja que las letras te recuerden nombres, lugares o situaciones donde el amor quiere florecer.';
+      case TarotFocus.work:
+        return 'Permite que las letras te inspiren ideas, proyectos o personas clave para tu crecimiento profesional.';
+      case TarotFocus.money:
+        return 'Observa qué letras aparecen y qué palabras de abundancia se forman en tu mente (clientes, ciudades, ideas…).';
+    }
+  }
 
   // ----------------- LÓGICA CARTAS -----------------
 
@@ -174,8 +247,7 @@ class _TarotScreenState extends State<TarotScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Toca hasta 6 fichas para revelar letras. Después, deja que tu intuición juegue: '
-              '¿qué nombres o palabras te vienen a la mente?',
+          _labelJuegoFichas(),
           style: theme.textTheme.bodySmall?.copyWith(
             color: Colors.white70,
             height: 1.3,
@@ -258,14 +330,6 @@ class _TarotScreenState extends State<TarotScreen> {
               color: Colors.white70,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'No necesitas formar una palabra perfecta. Deja que las letras despierten recuerdos, nombres o ideas.',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: Colors.white60,
-              height: 1.3,
-            ),
-          ),
         ],
       ],
     );
@@ -276,6 +340,7 @@ class _TarotScreenState extends State<TarotScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    const dorado = Color(0xFFFFD700);
 
     return Scaffold(
       appBar: AppBar(
@@ -301,13 +366,135 @@ class _TarotScreenState extends State<TarotScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // 🔮 3 cartas amor
+              // 🔁 Selector de enfoque
               Card(
                 color: Colors.black.withOpacity(0.45),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                   side: BorderSide(
-                    color: const Color(0xFFFFD700).withOpacity(0.4),
+                    color: dorado.withOpacity(0.4),
+                    width: 1.1,
+                  ),
+                ),
+                elevation: 8,
+                shadowColor: Colors.black.withOpacity(0.7),
+                child: Padding(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Enfoque de la lectura',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: dorado,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Elige en qué área quieres que el tarot ponga más luz hoy.',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.white70,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          ChoiceChip(
+                            label: const Text('Amor ❤️'),
+                            selected: _currentFocus == TarotFocus.love,
+                            onSelected: (_) {
+                              setState(() {
+                                _currentFocus = TarotFocus.love;
+                              });
+                            },
+                            selectedColor: dorado.withOpacity(0.15),
+                            labelStyle: TextStyle(
+                              color: _currentFocus == TarotFocus.love
+                                  ? dorado
+                                  : Colors.white70,
+                            ),
+                            backgroundColor: Colors.black.withOpacity(0.6),
+                            shape: StadiumBorder(
+                              side: BorderSide(
+                                color: _currentFocus == TarotFocus.love
+                                    ? dorado
+                                    : Colors.white24,
+                              ),
+                            ),
+                          ),
+                          ChoiceChip(
+                            label: const Text('Trabajo 💼'),
+                            selected: _currentFocus == TarotFocus.work,
+                            onSelected: (_) {
+                              setState(() {
+                                _currentFocus = TarotFocus.work;
+                              });
+                            },
+                            selectedColor: dorado.withOpacity(0.15),
+                            labelStyle: TextStyle(
+                              color: _currentFocus == TarotFocus.work
+                                  ? dorado
+                                  : Colors.white70,
+                            ),
+                            backgroundColor: Colors.black.withOpacity(0.6),
+                            shape: StadiumBorder(
+                              side: BorderSide(
+                                color: _currentFocus == TarotFocus.work
+                                    ? dorado
+                                    : Colors.white24,
+                              ),
+                            ),
+                          ),
+                          ChoiceChip(
+                            label: const Text('Dinero 💰'),
+                            selected: _currentFocus == TarotFocus.money,
+                            onSelected: (_) {
+                              setState(() {
+                                _currentFocus = TarotFocus.money;
+                              });
+                            },
+                            selectedColor: dorado.withOpacity(0.15),
+                            labelStyle: TextStyle(
+                              color: _currentFocus == TarotFocus.money
+                                  ? dorado
+                                  : Colors.white70,
+                            ),
+                            backgroundColor: Colors.black.withOpacity(0.6),
+                            shape: StadiumBorder(
+                              side: BorderSide(
+                                color: _currentFocus == TarotFocus.money
+                                    ? dorado
+                                    : Colors.white24,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Enfoque actual: ${_focusLabel()}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.white70,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // 🔮 3 cartas
+              Card(
+                color: Colors.black.withOpacity(0.45),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(
+                    color: dorado.withOpacity(0.4),
                     width: 1.1,
                   ),
                 ),
@@ -319,15 +506,15 @@ class _TarotScreenState extends State<TarotScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '3 cartas para iluminar tu camino en el amor',
+                        _title3Cards(),
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: const Color(0xFFFFD700),
+                          color: dorado,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Cierra los ojos, piensa en esa situación amorosa que te inquieta y deja que el tarot te susurre una respuesta.',
+                        _desc3Cards(),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: Colors.white.withOpacity(0.9),
                         ),
@@ -356,13 +543,13 @@ class _TarotScreenState extends State<TarotScreen> {
 
               const SizedBox(height: 24),
 
-              // 😍 6 cartas: quién está pensando en ti
+              // 😍 6 cartas
               Card(
                 color: Colors.black.withOpacity(0.45),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                   side: BorderSide(
-                    color: const Color(0xFFFFD700).withOpacity(0.2),
+                    color: dorado.withOpacity(0.2),
                     width: 1,
                   ),
                 ),
@@ -374,15 +561,15 @@ class _TarotScreenState extends State<TarotScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '¿Quién está pensando en ti?',
+                        _title6Cards(),
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: const Color(0xFFFFD700),
+                          color: dorado,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Elige 6 cartas para intuir qué tipo de energía, historia o persona podría estar acercándose a tu vida.',
+                        _desc6Cards(),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: Colors.white.withOpacity(0.9),
                         ),
@@ -405,13 +592,13 @@ class _TarotScreenState extends State<TarotScreen> {
 
               const SizedBox(height: 24),
 
-              // ❓ Pregunta SÍ / NO
+              // ❓ Sí / No
               Card(
                 color: Colors.black.withOpacity(0.45),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                   side: BorderSide(
-                    color: const Color(0xFFFFD700).withOpacity(0.2),
+                    color: dorado.withOpacity(0.2),
                     width: 1,
                   ),
                 ),
@@ -425,7 +612,7 @@ class _TarotScreenState extends State<TarotScreen> {
                       Text(
                         'Pregunta de SÍ / NO',
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: const Color(0xFFFFD700),
+                          color: dorado,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -516,7 +703,7 @@ class _TarotScreenState extends State<TarotScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                   side: BorderSide(
-                    color: const Color(0xFFFFD700).withOpacity(0.2),
+                    color: dorado.withOpacity(0.2),
                     width: 1,
                   ),
                 ),
@@ -536,7 +723,7 @@ class _TarotScreenState extends State<TarotScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                   side: BorderSide(
-                    color: const Color(0xFFFFD700).withOpacity(0.2),
+                    color: dorado.withOpacity(0.2),
                     width: 1,
                   ),
                 ),
@@ -550,7 +737,7 @@ class _TarotScreenState extends State<TarotScreen> {
                       Text(
                         'Péndulo del amor',
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: const Color(0xFFFFD700),
+                          color: dorado,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -575,6 +762,59 @@ class _TarotScreenState extends State<TarotScreen> {
                           },
                           icon: const Icon(Icons.podcasts),
                           label: const Text('Ir al péndulo'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // 🎡 Dados mágicos & Ruleta & Flor
+              Card(
+                color: Colors.black.withOpacity(0.45),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(
+                    color: dorado.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                elevation: 8,
+                shadowColor: Colors.black.withOpacity(0.6),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Dados, ruleta y flor del amor',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: dorado,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Si quieres jugar aún más con la energía del día, explora los dados mágicos, la ruleta de mensajes y la flor del amor.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const MysticToolsScreen(),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.casino),
+                          label: const Text('Abrir juegos mágicos'),
                         ),
                       ),
                     ],

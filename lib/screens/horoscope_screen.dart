@@ -368,13 +368,20 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
           title: Text(sign.nombre),
           elevation: 0,
           backgroundColor: Colors.transparent,
-          bottom: const TabBar(
-            indicatorColor: Color(0xFFFFD700),
-            tabs: [
+          bottom: TabBar(
+            indicatorColor: const Color(0xFFFFD700),
+            tabs: const [
               Tab(text: 'Hoy'),
               Tab(text: 'Semana'),
               Tab(text: 'Mes'),
             ],
+            onTap: (index) {
+              if (index == 1) {
+                _loadWeekly();   // 👉 carga horóscopo semanal
+              } else if (index == 2) {
+                _loadMonthly();  // 👉 carga horóscopo mensual
+              }
+            },
           ),
         ),
         extendBodyBehindAppBar: true,

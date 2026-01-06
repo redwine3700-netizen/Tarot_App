@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/tarot_models.dart';
 import '../services/horoscope_api_service.dart';
+import '../services/translation_service.dart';
 
 class HoroscopeScreen extends StatelessWidget {
   const HoroscopeScreen({super.key});
@@ -38,7 +39,6 @@ class HoroscopeScreen extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              // 👉 Más alto que antes para que no se desborde
               childAspectRatio: 0.75,
             ),
             itemBuilder: (context, index) {
@@ -89,7 +89,6 @@ class HoroscopeScreen extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 8),
-                        // Quitamos Spacer para no obligar a ocupar toda la altura
                         Expanded(
                           child: Text(
                             signo.resumenHoy,
@@ -132,6 +131,12 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
   bool _loadingWeekly = false;
   bool _loadingMonthly = false;
 
+  Future<String> _toSpanish(String text) async {
+    final t = text.trim();
+    if (t.isEmpty) return t;
+    return await TranslationService.toSpanish(t);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -139,26 +144,41 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
   }
 
   Future<void> _loadDaily() async {
+    if (_loadingDaily) return;
+
     setState(() {
       _loadingDaily = true;
     });
+
     try {
       final data =
       await HoroscopeApiService.fetchTodayForSign(widget.sign.nombre);
-      setState(() {
-        _daily = data;
-      });
-    } catch (_) {
-      // Fallback local
+      final preview = data.description.substring(
+        0,
+        data.description.length > 80 ? 80 : data.description.length,
+      );
+      debugPrint('API desc (EN) = $preview');
+
+
+      final translated = await _toSpanish(data.description);
+
+      if (!mounted) return;
       setState(() {
         _daily = DailyHoroscope(
-          description: widget.sign.resumenHoy,
-          mood: '—',
-          color: '—',
-          luckyNumber: '—',
+          description: translated,
+          mood: data.mood,
+          color: data.color,
+          luckyNumber: data.luckyNumber,
         );
       });
+    } catch (_) {
+      // puedes imprimir si quieres: debugPrint('Daily error: $e');
+      if (!mounted) return;
+      setState(() {
+        _daily = null;
+      });
     } finally {
+      if (!mounted) return;
       setState(() {
         _loadingDaily = false;
       });
@@ -167,26 +187,33 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
 
   Future<void> _loadWeekly() async {
     if (_weekly != null || _loadingWeekly) return;
+
     setState(() {
       _loadingWeekly = true;
     });
+
     try {
       final data =
       await HoroscopeApiService.fetchWeeklyForSign(widget.sign.nombre);
-      setState(() {
-        _weekly = data;
-      });
-    } catch (_) {
+
+      final translated = await _toSpanish(data.description);
+
+      if (!mounted) return;
       setState(() {
         _weekly = DailyHoroscope(
-          description:
-          'Tendencia semanal: ${widget.sign.resumenHoy} (adaptada a toda la semana).',
-          mood: '—',
-          color: '—',
-          luckyNumber: '—',
+          description: translated,
+          mood: data.mood,
+          color: data.color,
+          luckyNumber: data.luckyNumber,
         );
       });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _weekly = null;
+      });
     } finally {
+      if (!mounted) return;
       setState(() {
         _loadingWeekly = false;
       });
@@ -195,26 +222,33 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
 
   Future<void> _loadMonthly() async {
     if (_monthly != null || _loadingMonthly) return;
+
     setState(() {
       _loadingMonthly = true;
     });
+
     try {
       final data =
       await HoroscopeApiService.fetchMonthlyForSign(widget.sign.nombre);
-      setState(() {
-        _monthly = data;
-      });
-    } catch (_) {
+
+      final translated = await _toSpanish(data.description);
+
+      if (!mounted) return;
       setState(() {
         _monthly = DailyHoroscope(
-          description:
-          'Tendencia del mes: ${widget.sign.resumenHoy} (proyectada para el mes).',
-          mood: '—',
-          color: '—',
-          luckyNumber: '—',
+          description: translated,
+          mood: data.mood,
+          color: data.color,
+          luckyNumber: data.luckyNumber,
         );
       });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _monthly = null;
+      });
     } finally {
+      if (!mounted) return;
       setState(() {
         _loadingMonthly = false;
       });
@@ -377,9 +411,9 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
             ],
             onTap: (index) {
               if (index == 1) {
-                _loadWeekly();   // 👉 carga horóscopo semanal
+                _loadWeekly();
               } else if (index == 2) {
-                _loadMonthly();  // 👉 carga horóscopo mensual
+                _loadMonthly();
               }
             },
           ),
@@ -400,7 +434,6 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
           child: SafeArea(
             child: TabBarView(
               children: [
-                // HOY
                 ListView(
                   children: [
                     _buildGeneralBlock(
@@ -411,7 +444,6 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
                     _buildLoveWorkHealth(),
                   ],
                 ),
-                // SEMANA
                 ListView(
                   children: [
                     _buildGeneralBlock(
@@ -422,7 +454,6 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
                     _buildLoveWorkHealth(),
                   ],
                 ),
-                // MES
                 ListView(
                   children: [
                     _buildGeneralBlock(

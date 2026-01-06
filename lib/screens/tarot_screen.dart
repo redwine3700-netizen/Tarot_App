@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import '../models/tarot_models.dart';
 import 'pendulum_screen.dart';
 import 'mystic_tools_screen.dart';
+import 'quien_piensa_en_ti_screen.dart';
+
 
 enum TarotFocus { love, work, money }
 
@@ -36,6 +38,141 @@ class _TarotScreenState extends State<TarotScreen> {
   List<bool> _fichasReveladas = [];
   int _contadorFichasSeleccionadas = 0;
   bool _juegoFichasIniciado = false;
+
+  static const List<String> _posiciones6 = [
+    'Energía de la persona',
+    'Qué siente por ti',
+    'Lo que muestra o aparenta',
+    'Qué le impide acercarse',
+    'Qué podrías hacer tú',
+    'Hacia dónde va la conexión',
+  ];
+
+  String _interpretarCartaEnPosicion(TarotCard carta, int pos) {
+    final base = carta.significado.trim();
+
+    // Ajuste por enfoque (Amor / Trabajo / Dinero)
+    final foco = _currentFocus;
+
+    String enfoqueIntro;
+    if (foco == TarotFocus.love) {
+      enfoqueIntro = 'En el amor, esta carta te habla de';
+    } else if (foco == TarotFocus.work) {
+      enfoqueIntro = 'En el trabajo, esta carta sugiere';
+    } else {
+      enfoqueIntro = 'En el dinero, esta carta indica';
+    }
+
+    // Plantillas por posición (son la “magia” de lectura real)
+    switch (pos) {
+      case 0:
+        return '$enfoqueIntro la energía central: '
+            'la vibra que rodea esta conexión ahora mismo. '
+            'Con ${carta.nombre}, esto puede significar que $base';
+      case 1:
+        return '$enfoqueIntro los sentimientos reales. '
+            'Con ${carta.nombre}, el corazón de la otra persona podría estar '
+            'mostrando que $base';
+      case 2:
+        return '$enfoqueIntro lo que se ve desde afuera. '
+            'Con ${carta.nombre}, puede que esta persona aparente una cosa, '
+            'pero en el fondo $base';
+      case 3:
+        return '$enfoqueIntro el bloqueo o la razón del freno. '
+            'Con ${carta.nombre}, lo que le impide acercarse puede ser que $base';
+      case 4:
+        return '$enfoqueIntro tu mejor movimiento: '
+            'cómo cuidarte y actuar con dignidad. '
+            'Con ${carta.nombre}, la guía es que $base';
+      case 5:
+      default:
+        return '$enfoqueIntro la tendencia del camino. '
+            'Con ${carta.nombre}, hacia dónde puede ir esto sugiere que $base';
+    }
+  }
+
+  void _mostrarDetalle6Cartas(BuildContext context, TarotCard carta, int pos) {
+    final titulo = _posiciones6[pos];
+    final lectura = _interpretarCartaEnPosicion(carta, pos);
+
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: const Color(0xFF160B2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  titulo,
+                  style: const TextStyle(
+                    color: Color(0xFFFFD700),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.asset(
+                      carta.imagePath,
+                      height: 220,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  carta.nombre,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  lectura,
+                  style: const TextStyle(color: Colors.white70, height: 1.4),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.35),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFFFD700), width: 1),
+                  ),
+                  child: Text(
+                    'Mensaje de la carta:\n${carta.significado}',
+                    style: const TextStyle(color: Colors.white, height: 1.35),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text(
+                      'Cerrar',
+                      style: TextStyle(color: Color(0xFFFFD700)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+
+
 
   // ----------------- TEXTOS SEGÚN ENFOQUE -----------------
 
@@ -201,6 +338,68 @@ class _TarotScreenState extends State<TarotScreen> {
       ),
     );
   }
+
+  Widget _buildCardsRowSeis(List<TarotCard> cards) {
+    return SizedBox(
+      height: 210,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: cards.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          final card = cards[index];
+
+          return InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () => _mostrarDetalle6Cartas(context, card, index),
+            child: SizedBox(
+              width: 120,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: AspectRatio(
+                        aspectRatio: 3 / 5,
+                        child: Image.asset(
+                          card.imagePath,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _posiciones6[index],
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    card.nombre,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
 
   // ----------------- LÓGICA JUEGO FICHAS -----------------
 
@@ -578,17 +777,37 @@ class _TarotScreenState extends State<TarotScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const QuienPiensaEnTiScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text('Lectura completa 💌'),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
                           onPressed: _hacerLecturaSeisCartas,
                           child: const Text('Revelar 6 cartas'),
                         ),
                       ),
                       const SizedBox(height: 12),
                       if (_lecturaSeisCartas != null)
-                        _buildCardsRow(_lecturaSeisCartas!),
+                        _buildCardsRowSeis(_lecturaSeisCartas!),
                     ],
                   ),
                 ),
               ),
+
+
 
               const SizedBox(height: 24),
 

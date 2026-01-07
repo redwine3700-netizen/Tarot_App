@@ -20,14 +20,10 @@ class TranslationService {
   static Future<String> toSpanish(String text) async {
     final t = text.trim();
     if (t.isEmpty) return text;
+    if (_apiKey.isEmpty) return text;
 
     final cached = _cache[t];
     if (cached != null) return cached;
-
-
-
-    // Si aparece "len=0" en tu log, es porque NO pasaste --dart-define
-    if (_apiKey.isEmpty) return text;
 
     try {
       final uri = Uri.parse('$_url?key=$_apiKey');
@@ -43,11 +39,10 @@ class TranslationService {
         }),
       );
 
-      if (response.statusCode != 200) return text; // igual que tu versión:contentReference[oaicite:1]{index=1}
+      if (response.statusCode != 200) return text;
 
       final data = jsonDecode(response.body) as Map<String, dynamic>;
-      final translations =
-          (data['data']?['translations'] as List?) ?? const [];
+      final translations = (data['data']?['translations'] as List?) ?? const [];
 
       if (translations.isEmpty) return text;
 
@@ -61,4 +56,5 @@ class TranslationService {
       return text;
     }
   }
+
 }

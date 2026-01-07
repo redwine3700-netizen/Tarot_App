@@ -15,7 +15,7 @@ class TombolaTab extends StatefulWidget {
 
 class _TombolaTabState extends State<TombolaTab> {
   static const int _maxNumber = 49;
-  static const int _count = 6;
+  int _count = 6; // 6 o 1 según modo
 
   static const String _prefsHistoryKey = 'tombola_history_v1';
 
@@ -30,6 +30,7 @@ class _TombolaTabState extends State<TombolaTab> {
   late List<int> _draw;
   int _revealed = 0;
   int _mixTick = 0;
+  bool _singleMode = false; // false=6 números, true=1 número
 
   // Historial persistente (últimas 10)
   final List<_HistoryItem> _history = [];
@@ -84,14 +85,19 @@ class _TombolaTabState extends State<TombolaTab> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text("Cancelar", style: TextStyle(color: Colors.white70)),
+              child: const Text(
+                "Cancelar",
+                style: TextStyle(color: Colors.white70),
+              ),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx, true),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _pink,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
               child: const Text("Borrar"),
             ),
@@ -107,10 +113,12 @@ class _TombolaTabState extends State<TombolaTab> {
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Historial borrado ✅"), duration: Duration(seconds: 2)),
+      const SnackBar(
+        content: Text("Historial borrado ✅"),
+        duration: Duration(seconds: 2),
+      ),
     );
   }
-
 
   void _addToHistory(List<int> nums) {
     _history.insert(0, _HistoryItem(DateTime.now(), List<int>.from(nums)));
@@ -121,9 +129,12 @@ class _TombolaTabState extends State<TombolaTab> {
   void _newDraw() {
     final pool = List<int>.generate(_maxNumber, (i) => i + 1);
     pool.shuffle(_rng);
-    _draw = pool.take(_count).toList();
+
+    _count = _singleMode ? 1 : 6; // ✅ primero asigna
+    _draw = pool.take(_count).toList(); // ✅ luego toma
+
     _revealed = 0;
-    _mixTick++; // remolino en nueva tirada
+    _mixTick++;
     setState(() {});
   }
 
@@ -211,7 +222,10 @@ class _TombolaTabState extends State<TombolaTab> {
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(ctx),
-                    icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: Colors.white70,
+                    ),
                   ),
                 ],
               ),
@@ -230,7 +244,9 @@ class _TombolaTabState extends State<TombolaTab> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white,
                         side: BorderSide(color: _pink.withOpacity(0.7)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                     ),
                   ),
@@ -238,14 +254,12 @@ class _TombolaTabState extends State<TombolaTab> {
               ),
               const SizedBox(height: 8),
 
-
-
               Flexible(
                 child: ListView.separated(
                   shrinkWrap: true,
                   itemCount: _history.length,
                   separatorBuilder: (_, __) =>
-                  const Divider(color: Colors.white12),
+                      const Divider(color: Colors.white12),
                   itemBuilder: (context, i) {
                     final item = _history[i];
                     final textNums = item.nums
@@ -273,8 +287,10 @@ class _TombolaTabState extends State<TombolaTab> {
                       ),
                       trailing: IconButton(
                         tooltip: "Copiar",
-                        icon: const Icon(Icons.copy_rounded,
-                            color: Color(0xFFFFD700)),
+                        icon: const Icon(
+                          Icons.copy_rounded,
+                          color: Color(0xFFFFD700),
+                        ),
                         onPressed: () =>
                             _copyText("Tómbola Mundial (1–49): $textNums"),
                       ),
@@ -334,13 +350,49 @@ class _TombolaTabState extends State<TombolaTab> {
               children: [
                 const SizedBox(height: 6),
                 Text(
-                  'Saca 6 números del 1 al 49 y revela uno a uno ✨',
+                  _singleMode
+                      ? 'Saca 1 número del 1 al 49 ✨'
+                      : 'Saca 6 números del 1 al 49 y revela uno a uno ✨',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: Colors.white.withOpacity(0.9),
                   ),
                 ),
+
                 const SizedBox(height: 18),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    color: Colors.black.withOpacity(0.28),
+                    border: Border.all(color: _gold.withOpacity(0.25)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _singleMode
+                              ? "Modo: 1 número (Suerte)"
+                              : "Modo: 6 números (Tómbola)",
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      Switch(
+                        value: _singleMode,
+                        onChanged: (v) {
+                          setState(() => _singleMode = v);
+                          _newDraw(); // genera 1 o 6 según modo
+                        },
+                        activeColor: _pink,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
                 SizedBox(
                   height: 320,
                   child: _TombolaMachineView(
@@ -379,8 +431,9 @@ class _TombolaTabState extends State<TombolaTab> {
                       child: ElevatedButton(
                         onPressed: _revealed >= _count ? null : _revealNext,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                          _revealed >= _count ? Colors.white10 : _pink,
+                          backgroundColor: _revealed >= _count
+                              ? Colors.white10
+                              : _pink,
                           foregroundColor: Colors.white,
                           elevation: 10,
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -392,7 +445,9 @@ class _TombolaTabState extends State<TombolaTab> {
                             letterSpacing: 0.2,
                           ),
                         ),
-                        child: Text(_revealed >= _count ? "Revelado" : "Revelar"),
+                        child: Text(
+                          _revealed >= _count ? "Revelado" : "Revelar",
+                        ),
                       ),
                     ),
                   ],
@@ -521,7 +576,7 @@ class _TombolaMachineViewState extends State<_TombolaMachineView>
     if (widget.revealed > oldWidget.revealed) {
       _ctrl.forward(from: 0);
 
-      if (widget.revealed == 6) {
+      if (widget.revealed == widget.numbers.length) {
         _celebrate = true;
         setState(() {});
         Future.delayed(const Duration(milliseconds: 900), () {
@@ -593,10 +648,7 @@ class _TombolaMachineViewState extends State<_TombolaMachineView>
               color: Colors.white.withOpacity(0.06),
               border: Border.all(color: widget.gold.withOpacity(0.18)),
               boxShadow: [
-                BoxShadow(
-                  color: widget.pink.withOpacity(0.10),
-                  blurRadius: 14,
-                ),
+                BoxShadow(color: widget.pink.withOpacity(0.10), blurRadius: 14),
               ],
             ),
           ),
@@ -789,13 +841,13 @@ class _FloatingBallsPainter extends CustomPainter {
   }
 
   void _drawBall(
-      Canvas canvas,
-      Offset c,
-      double radius,
-      String label,
-      int i,
-      double alpha,
-      ) {
+    Canvas canvas,
+    Offset c,
+    double radius,
+    String label,
+    int i,
+    double alpha,
+  ) {
     final rect = Rect.fromCircle(center: c, radius: radius);
     final baseColor = i.isEven ? gold : pink;
 
@@ -915,5 +967,3 @@ class _HistoryItem {
     return _HistoryItem(DateTime.fromMillisecondsSinceEpoch(t), n);
   }
 }
-
-

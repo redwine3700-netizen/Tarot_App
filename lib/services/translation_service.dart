@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-/// SERVICIO DE TRADUCCIÓN (inglés → español) usando Google Cloud Translate
 class TranslationService {
-  // 🔐 Pon aquí tu API key real
-  static const _apiKey = 'AIzaSyA7NUebUIBZi4WwwSSFaCgbSsd1MKevCj4';
+  static final Map<String, String> _cache = {};
 
-  static const _url =
+  static const String _apiKey =
+  String.fromEnvironment('TRANSLATE_API_KEY', defaultValue: '');
+
+  static const String _url =
       'https://translation.googleapis.com/language/translate/v2';
 
   static String _cleanHtmlEntities(String text) {
@@ -17,42 +18,41 @@ class TranslationService {
   }
 
   static Future<String> toSpanish(String text) async {
-    if (text.trim().isEmpty) return text;
+    final t = text.trim();
+    if (t.isEmpty) return text;
+    if (_apiKey.isEmpty) return text;
+
+    final cached = _cache[t];
+    if (cached != null) return cached;
 
     try {
       final uri = Uri.parse('$_url?key=$_apiKey');
 
       final response = await http.post(
         uri,
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8',
-        },
+        headers: const {'Content-Type': 'application/json; charset=utf-8'},
         body: jsonEncode({
-          'q': text,
+          'q': t,
           'source': 'en',
           'target': 'es',
           'format': 'text',
         }),
       );
 
-      if (response.statusCode != 200) {
-        // Si falla la API, devolvemos el texto original en inglés
-        return text;
-      }
+      if (response.statusCode != 200) return text;
 
-      final data = json.decode(response.body) as Map<String, dynamic>;
-      final translations = data['data']?['translations'] as List<dynamic>?;
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final translations = (data['data']?['translations'] as List?) ?? const [];
 
-      if (translations == null || translations.isEmpty) {
-        return text;
-      }
+      if (translations.isEmpty) return text;
 
-      final translatedText =
-          translations.first['translatedText']?.toString() ?? text;
+      final translated = _cleanHtmlEntities(
+        translations.first['translatedText']?.toString() ?? text,
+      );
 
-      return _cleanHtmlEntities(translatedText);
+      _cache[t] = translated;
+      return translated;
     } catch (_) {
-      // Cualquier error de red o parsing → devolvemos el texto original
       return text;
     }
   }

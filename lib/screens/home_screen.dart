@@ -34,10 +34,144 @@ class _HomeScreenState extends State<HomeScreen> {
     await Future.delayed(const Duration(milliseconds: 300));
 
     setState(() {
+      if (cartasTarot.isEmpty) {
+        _cartaDelDia = null;
+        _cargandoCarta = false;
+        return;
+      }
       _cartaDelDia = cartasTarot[_random.nextInt(cartasTarot.length)];
       _cargandoCarta = false;
+
     });
   }
+  void _mostrarCartaDelDiaSheet() {
+    if (_cartaDelDia == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        final theme = Theme.of(context);
+        final dorado = const Color(0xFFD6B15E);
+
+        return SafeArea(
+          child: Container(
+            margin: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0E0C1E),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: dorado.withOpacity(0.35), width: 1),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 42,
+                  height: 5,
+                  margin: const EdgeInsets.only(bottom: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                ),
+                Text(
+                  'Carta del día ✨',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: dorado,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: SizedBox(
+                        width: 110,
+                        height: 170,
+                        child: Image.asset(
+                          _cartaDelDia!.imagePath,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stack) {
+                            return Container(
+                              color: Colors.black26,
+                              alignment: Alignment.center,
+                              child: const Icon(
+                                Icons.image_not_supported,
+                                color: Colors.white70,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _cartaDelDia!.nombre,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            _cartaDelDia!.significado,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: Colors.white.withOpacity(0.9),
+                              height: 1.35,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _generarCartaDelDia();
+                        },
+                        icon: const Icon(Icons.casino),
+                        label: const Text('Volver a sacar'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const TarotScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.auto_awesome),
+                        label: const Text('Ir al Tarot'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.transparent,
       ),
       extendBodyBehindAppBar: true,
+
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -117,119 +252,118 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 elevation: 12,
                 shadowColor: Colors.black.withOpacity(0.7),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.auto_awesome,
-                            color: dorado,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Carta del día',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: dorado,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const Spacer(),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.6),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: dorado.withOpacity(0.6),
-                                width: 0.8,
-                              ),
-                            ),
-                            child: Text(
-                              'Tarot del Sol',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: dorado,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      if (_cargandoCarta)
-                        const SizedBox(
-                          height: 140,
-                          child: Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        )
-                      else if (_cartaDelDia != null) ...[
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () {}, // si no tienes esta función, pon: () {}
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(18),
-                              child: AspectRatio(
-                                aspectRatio: 3 / 5,
-                                child: SizedBox(
-                                  height: 140,
-                                  child: Image.asset(
-                                    _cartaDelDia!.imagePath,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
+                            Icon(Icons.auto_awesome, color: dorado, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Carta del día',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: dorado,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _cartaDelDia!.nombre,
-                                    style:
-                                    theme.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    _cartaDelDia!.significado,
-                                    maxLines: 5,
-                                    overflow: TextOverflow.ellipsis,
-                                    style:
-                                    theme.textTheme.bodyMedium?.copyWith(
-                                      color: Colors.white.withOpacity(0.9),
-                                      height: 1.3,
-                                    ),
-                                  ),
-                                ],
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.6),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: dorado.withOpacity(0.6), width: 0.8),
+                              ),
+                              child: Text(
+                                'Tarot del Sol',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: dorado,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 12),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed:
-                            _cargandoCarta ? null : _generarCartaDelDia,
-                            child: const Text('Volver a sacar'),
+
+                        if (_cargandoCarta)
+                          const SizedBox(
+                            height: 140,
+                            child: Center(child: CircularProgressIndicator()),
+                          )
+                        else if (_cartaDelDia != null) ...[
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: SizedBox(
+                                  width: 90,
+                                  height: 140,
+                                  child: Image.asset(
+                                    _cartaDelDia!.imagePath,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stack) {
+                                      return Container(
+                                        color: Colors.black26,
+                                        alignment: Alignment.center,
+                                        child: const Icon(Icons.image_not_supported, color: Colors.white70),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _cartaDelDia!.nombre,
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      _cartaDelDia!.significado,
+                                      maxLines: 4,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.bodyMedium?.copyWith(
+                                        color: Colors.white.withOpacity(0.9),
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: TextButton.icon(
+                                        onPressed: _generarCartaDelDia,
+                                        icon: const Icon(Icons.casino),
+                                        label: const Text('Volver a sacar'),
+                                        style: TextButton.styleFrom(foregroundColor: dorado),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ] else ...[
-                        const Text('Aún no hay carta del día disponible.'),
+                        ] else ...[
+                          const Text('Aún no hay carta del día disponible.'),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
+
 
               const SizedBox(height: 18),
 

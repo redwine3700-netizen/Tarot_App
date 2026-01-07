@@ -67,6 +67,51 @@ class _TombolaTabState extends State<TombolaTab> {
     await prefs.setStringList(_prefsHistoryKey, list);
   }
 
+  Future<void> _clearHistory() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF12091D),
+          title: const Text(
+            "Borrar historial",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
+          ),
+          content: Text(
+            "¿Seguro que quieres borrar todas las tiradas guardadas?",
+            style: TextStyle(color: Colors.white.withOpacity(0.85)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text("Cancelar", style: TextStyle(color: Colors.white70)),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _pink,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              child: const Text("Borrar"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (ok != true) return;
+
+    setState(() => _history.clear());
+    await _saveHistory();
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Historial borrado ✅"), duration: Duration(seconds: 2)),
+    );
+  }
+
+
   void _addToHistory(List<int> nums) {
     _history.insert(0, _HistoryItem(DateTime.now(), List<int>.from(nums)));
     if (_history.length > 10) _history.removeLast();
@@ -170,7 +215,31 @@ class _TombolaTabState extends State<TombolaTab> {
                   ),
                 ],
               ),
+
               const SizedBox(height: 6),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        Navigator.pop(ctx); // cierra el sheet
+                        await _clearHistory(); // pide confirmación y borra
+                      },
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      label: const Text("Borrar historial"),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: BorderSide(color: _pink.withOpacity(0.7)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+
+
               Flexible(
                 child: ListView.separated(
                   shrinkWrap: true,

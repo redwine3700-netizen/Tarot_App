@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../models/tarot_models.dart';
 import 'pendulum_screen.dart';
 import 'mystic_tools_screen.dart';
+import 'tarot/tarot_reading_screen.dart';
 
 enum TarotFocus { love, work, money }
 
@@ -176,10 +177,7 @@ class _TarotScreenState extends State<TarotScreen> {
                     borderRadius: BorderRadius.circular(16),
                     child: AspectRatio(
                       aspectRatio: 3 / 5,
-                      child: Image.asset(
-                        card.imagePath,
-                        fit: BoxFit.cover,
-                      ),
+                      child: Image.asset(card.imagePath, fit: BoxFit.cover),
                     ),
                   ),
                 ),
@@ -198,6 +196,32 @@ class _TarotScreenState extends State<TarotScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _abrirLecturaCompleta(List<TarotCard> cards, String spreadName) {
+    final lite = cards
+        .map(
+          (c) => TarotCardLite(
+            name: c.nombre,
+            imageAsset: c.imagePath,
+            meaningGeneral: c.significado,
+            meaningLove: c.significado,
+            meaningWork: c.significado,
+            meaningMoney: c.significado,
+          ),
+        )
+        .toList();
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => TarotReadingScreen(
+          title: "Lectura completa — ${_focusLabel()}",
+          spreadName: spreadName,
+          cards: lite,
+          question: null,
+        ),
       ),
     );
   }
@@ -269,9 +293,7 @@ class _TarotScreenState extends State<TarotScreen> {
             ),
             child: Text(
               _juegoFichasIniciado ? 'Volver a jugar' : 'Iniciar juego',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
         ),
@@ -298,27 +320,24 @@ class _TarotScreenState extends State<TarotScreen> {
                     ),
                     boxShadow: revelada
                         ? [
-                      BoxShadow(
-                        color: dorado.withOpacity(0.4),
-                        blurRadius: 8,
-                        spreadRadius: 1,
-                      ),
-                    ]
+                            BoxShadow(
+                              color: dorado.withOpacity(0.4),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ]
                         : [],
                   ),
                   alignment: Alignment.center,
                   child: revelada
                       ? Text(
-                    _fichasLetras[index],
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      color: dorado,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )
-                      : const Icon(
-                    Icons.star_border,
-                    color: dorado,
-                  ),
+                          _fichasLetras[index],
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            color: dorado,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : const Icon(Icons.star_border, color: dorado),
                 ),
               );
             }),
@@ -326,9 +345,7 @@ class _TarotScreenState extends State<TarotScreen> {
           const SizedBox(height: 12),
           Text(
             'Fichas reveladas: $_contadorFichasSeleccionadas / $_maxFichasSeleccionadas',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: Colors.white70,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: Colors.white70),
           ),
         ],
       ],
@@ -355,11 +372,7 @@ class _TarotScreenState extends State<TarotScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF140A24),
-              Color(0xFF1C1036),
-              Color(0xFF2C1D4A),
-            ],
+            colors: [Color(0xFF140A24), Color(0xFF1C1036), Color(0xFF2C1D4A)],
           ),
         ),
         child: SafeArea(
@@ -371,16 +384,15 @@ class _TarotScreenState extends State<TarotScreen> {
                 color: Colors.black.withOpacity(0.45),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(
-                    color: dorado.withOpacity(0.4),
-                    width: 1.1,
-                  ),
+                  side: BorderSide(color: dorado.withOpacity(0.4), width: 1.1),
                 ),
                 elevation: 8,
                 shadowColor: Colors.black.withOpacity(0.7),
                 child: Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -493,10 +505,7 @@ class _TarotScreenState extends State<TarotScreen> {
                 color: Colors.black.withOpacity(0.45),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(
-                    color: dorado.withOpacity(0.4),
-                    width: 1.1,
-                  ),
+                  side: BorderSide(color: dorado.withOpacity(0.4), width: 1.1),
                 ),
                 elevation: 10,
                 shadowColor: Colors.black.withOpacity(0.7),
@@ -534,8 +543,23 @@ class _TarotScreenState extends State<TarotScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
+
                       if (_lecturaTresCartas != null)
                         _buildCardsRow(_lecturaTresCartas!),
+                      if (_lecturaTresCartas != null)
+                        const SizedBox(height: 12),
+                      if (_lecturaTresCartas != null)
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _abrirLecturaCompleta(
+                              _lecturaTresCartas!,
+                              "Tirada de 3 cartas",
+                            ),
+                            icon: const Icon(Icons.auto_awesome),
+                            label: const Text("Ver lectura completa"),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -548,10 +572,7 @@ class _TarotScreenState extends State<TarotScreen> {
                 color: Colors.black.withOpacity(0.45),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(
-                    color: dorado.withOpacity(0.2),
-                    width: 1,
-                  ),
+                  side: BorderSide(color: dorado.withOpacity(0.2), width: 1),
                 ),
                 elevation: 8,
                 shadowColor: Colors.black.withOpacity(0.6),
@@ -583,8 +604,23 @@ class _TarotScreenState extends State<TarotScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
+
                       if (_lecturaSeisCartas != null)
                         _buildCardsRow(_lecturaSeisCartas!),
+                      if (_lecturaSeisCartas != null)
+                        const SizedBox(height: 12),
+                      if (_lecturaSeisCartas != null)
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _abrirLecturaCompleta(
+                              _lecturaSeisCartas!,
+                              "Tirada de 6 cartas",
+                            ),
+                            icon: const Icon(Icons.auto_awesome),
+                            label: const Text("Ver lectura completa"),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -597,10 +633,7 @@ class _TarotScreenState extends State<TarotScreen> {
                 color: Colors.black.withOpacity(0.45),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(
-                    color: dorado.withOpacity(0.2),
-                    width: 1,
-                  ),
+                  side: BorderSide(color: dorado.withOpacity(0.2), width: 1),
                 ),
                 elevation: 8,
                 shadowColor: Colors.black.withOpacity(0.6),
@@ -676,7 +709,8 @@ class _TarotScreenState extends State<TarotScreen> {
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: _colorResultadoSiNo(
-                                          _resultadoSiNo!),
+                                        _resultadoSiNo!,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 4),
@@ -702,10 +736,7 @@ class _TarotScreenState extends State<TarotScreen> {
                 color: Colors.black.withOpacity(0.45),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(
-                    color: dorado.withOpacity(0.2),
-                    width: 1,
-                  ),
+                  side: BorderSide(color: dorado.withOpacity(0.2), width: 1),
                 ),
                 elevation: 8,
                 shadowColor: Colors.black.withOpacity(0.6),
@@ -722,10 +753,7 @@ class _TarotScreenState extends State<TarotScreen> {
                 color: Colors.black.withOpacity(0.45),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(
-                    color: dorado.withOpacity(0.2),
-                    width: 1,
-                  ),
+                  side: BorderSide(color: dorado.withOpacity(0.2), width: 1),
                 ),
                 elevation: 8,
                 shadowColor: Colors.black.withOpacity(0.6),
@@ -744,7 +772,7 @@ class _TarotScreenState extends State<TarotScreen> {
                       const SizedBox(height: 8),
                       Text(
                         'Si quieres una respuesta más mágica, pregunta al péndulo y observa cómo se mueve: '
-                            'arriba/abajo (sí), lados (no), círculo (tal vez).',
+                        'arriba/abajo (sí), lados (no), círculo (tal vez).',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: Colors.white.withOpacity(0.9),
                         ),
@@ -776,10 +804,7 @@ class _TarotScreenState extends State<TarotScreen> {
                 color: Colors.black.withOpacity(0.45),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(
-                    color: dorado.withOpacity(0.2),
-                    width: 1,
-                  ),
+                  side: BorderSide(color: dorado.withOpacity(0.2), width: 1),
                 ),
                 elevation: 8,
                 shadowColor: Colors.black.withOpacity(0.6),

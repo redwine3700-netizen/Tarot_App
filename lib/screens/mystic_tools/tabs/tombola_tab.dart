@@ -121,7 +121,10 @@ class _TombolaTabState extends State<TombolaTab> {
   }
 
   void _addToHistory(List<int> nums) {
-    _history.insert(0, _HistoryItem(DateTime.now(), List<int>.from(nums)));
+    _history.insert(
+      0,
+      _HistoryItem(DateTime.now(), List<int>.from(nums), _count),
+    );
     if (_history.length > 10) _history.removeLast();
     _saveHistory();
   }
@@ -229,15 +232,16 @@ class _TombolaTabState extends State<TombolaTab> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 6),
+
+              // Botón borrar (si ya lo tienes, déjalo; si no, puedes borrarlo)
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () async {
-                        Navigator.pop(ctx); // cierra el sheet
-                        await _clearHistory(); // pide confirmación y borra
+                        Navigator.pop(ctx);
+                        await _clearHistory();
                       },
                       icon: const Icon(Icons.delete_outline_rounded),
                       label: const Text("Borrar historial"),
@@ -274,12 +278,43 @@ class _TombolaTabState extends State<TombolaTab> {
 
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        textNums,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      title: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              textNums,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14),
+                              color: (item.count == 1)
+                                  ? const Color(0xFFFF4FD8).withOpacity(0.22)
+                                  : const Color(0xFFFFD700).withOpacity(0.18),
+                              border: Border.all(
+                                color: (item.count == 1)
+                                    ? const Color(0xFFFF4FD8).withOpacity(0.55)
+                                    : const Color(0xFFFFD700).withOpacity(0.45),
+                              ),
+                            ),
+                            child: Text(
+                              item.count == 1 ? "🎯 1" : "🎱 6",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       subtitle: Text(
                         time,
@@ -953,17 +988,20 @@ class _SparklesPainter extends CustomPainter {
 class _HistoryItem {
   final DateTime time;
   final List<int> nums;
+  final int count; // 1 o 6
 
-  _HistoryItem(this.time, this.nums);
+  _HistoryItem(this.time, this.nums, this.count);
 
   Map<String, dynamic> toJson() => {
     't': time.millisecondsSinceEpoch,
     'n': nums,
+    'c': count,
   };
 
   factory _HistoryItem.fromJson(Map<String, dynamic> json) {
     final t = (json['t'] as num).toInt();
     final n = (json['n'] as List).map((e) => (e as num).toInt()).toList();
-    return _HistoryItem(DateTime.fromMillisecondsSinceEpoch(t), n);
+    final c = (json['c'] as num?)?.toInt() ?? n.length; // fallback
+    return _HistoryItem(DateTime.fromMillisecondsSinceEpoch(t), n, c);
   }
 }

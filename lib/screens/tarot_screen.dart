@@ -5,8 +5,10 @@ import '../models/tarot_models.dart';
 import 'pendulum_screen.dart';
 import 'mystic_tools_screen.dart';
 import 'tarot/tarot_reading_screen.dart';
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 
-enum TarotFocus { love, work, money }
+enum TarotFocus { general, love, work, money }
 
 class TarotScreen extends StatefulWidget {
   const TarotScreen({super.key});
@@ -16,9 +18,60 @@ class TarotScreen extends StatefulWidget {
 }
 
 class _TarotScreenState extends State<TarotScreen> {
-  final Random _random = Random();
+  TarotFocus _currentFocus =
+      TarotFocus.love; // o TarotFocus.general si ya existe
 
-  TarotFocus _currentFocus = TarotFocus.love;
+  String _readingType = "general"; // "amor", "trabajo", "dinero"
+  bool _isPremium = false; // después lo conectamos con tu premium real
+  Map<String, dynamic>? _copyData;
+
+  String _readingTypeFromFocus(TarotFocus focus) {
+    switch (focus) {
+      case TarotFocus.love:
+        return "amor";
+      case TarotFocus.work:
+        return "trabajo";
+      case TarotFocus.money:
+        return "dinero";
+      default:
+        return "general";
+    }
+  }
+
+  String _packIdFor(String readingType, bool isPremium) {
+    final tier = isPremium ? "premium" : "free";
+    return "es_${readingType}_$tier";
+  }
+
+  Map<String, dynamic> _findPackOrFallback(
+    List packs,
+    String readingType,
+    bool isPremium,
+  ) {
+    final desiredId = _packIdFor(readingType, isPremium);
+    final fallbackId = _packIdFor("general", isPremium);
+
+    Map<String, dynamic>? desired;
+    Map<String, dynamic>? fallback;
+
+    for (final item in packs) {
+      final p = item as Map<String, dynamic>;
+      final id = p["id"];
+      if (id == desiredId) desired = p;
+      if (id == fallbackId) fallback = p;
+    }
+
+    return desired ?? fallback ?? (packs.first as Map<String, dynamic>);
+  }
+
+  Future<Map<String, dynamic>> _loadCopyPacksEs() async {
+    final jsonString = await rootBundle.loadString(
+      'assets/copy/copy_packs_es.json',
+    );
+    return jsonDecode(jsonString) as Map<String, dynamic>;
+  }
+
+  final Random _random = Random();
 
   // Tirada 3 cartas
   List<TarotCard>? _lecturaTresCartas;
@@ -38,6 +91,78 @@ class _TarotScreenState extends State<TarotScreen> {
   int _contadorFichasSeleccionadas = 0;
   bool _juegoFichasIniciado = false;
 
+  String _normalizeCardKey(String name) {
+    // "El Sol" -> "EL_SOL" (ajusta si tus keys son distintas)
+    final s = name
+        .toUpperCase()
+        .replaceAll('Á', 'A')
+        .replaceAll('É', 'E')
+        .replaceAll('Í', 'I')
+        .replaceAll('Ó', 'O')
+        .replaceAll('Ú', 'U')
+        .replaceAll('Ü', 'U')
+        .replaceAll('Ñ', 'N')
+        .replaceAll(RegExp(r'[^A-Z0-9 ]'), '')
+        .trim()
+        .replaceAll(RegExp(r'\s+'), '_');
+    return s;
+  }
+
+  String _pick(List<dynamic> list) => list[_random.nextInt(list.length)] as String;
+
+  String _posKeyFor(String spreadName, int index) {
+    final is3 = spreadName.contains('3');
+    if (is3) return const ['pasado', 'presente', 'futuro'][index];
+
+    // 6 cartas (puedes cambiar nombres si quieres)
+    return const [
+      'energia',
+      'bloqueo',
+      'ayuda',
+      'consejo',
+      'resultado',
+      'clave'
+    ][index];
+  }
+
+  String _composeMeaning({
+    required TarotCard card,
+    required String area,     // "general" | "amor" | "trabajo" | "dinero"
+    required String posKey,   // "pasado" | "presente" | "futuro" | etc
+    required bool is3Cards,
+  }) {
+    if (_copyData == null) return card.significado;
+
+    final banks = _copyData!['banks'] as Map<String, dynamic>;
+
+    // posiciones: para 3 usamos posicion_3; para 6 puedes reutilizar o crear otro bank después
+    final posBank = (banks[is3Cards ? 'posicion_3' : 'posicion_3'] as Map<String, dynamic>);
+    final posList = (posBank[posKey] as List<dynamic>?) ?? const [];
+    final lensBank = banks['lente_area'] as Map<String, dynamic>;
+    final lensList = (lensBank[area] as List<dynamic>?) ?? const [];
+    final microList = (banks['microacciones'] as List<dynamic>?) ?? const [];
+
+    final shortMap = (banks['significado_corto'] as Map<String, dynamic>?) ?? {};
+    final key = _normalizeCardKey(card.nombre);
+    final variants = (shortMap[key] as List<dynamic>?)?.cast<String>();
+
+    final pos = posList.isNotEmpty ? _pick(posList) : '';
+    final lens = lensList.isNotEmpty ? _pick(lensList) : '';
+    final short = (variants != null && variants.isNotEmpty)
+        ? variants[_random.nextInt(variants.length)]
+        : card.significado;
+    final micro = microList.isNotEmpty ? _pick(microList) : '';
+
+    // armado final premium: corto + variado
+    return [
+      if (pos.isNotEmpty) pos,
+      if (lens.isNotEmpty) lens,
+      short,
+      if (micro.isNotEmpty) micro,
+    ].join('\n');
+  }
+
+
   // ----------------- TEXTOS SEGÚN ENFOQUE -----------------
 
   String _focusLabel() {
@@ -48,6 +173,8 @@ class _TarotScreenState extends State<TarotScreen> {
         return 'Trabajo';
       case TarotFocus.money:
         return 'Dinero';
+      case TarotFocus.general:
+        return 'General';
     }
   }
 
@@ -59,6 +186,8 @@ class _TarotScreenState extends State<TarotScreen> {
         return '3 cartas para entender tu camino laboral';
       case TarotFocus.money:
         return '3 cartas para desbloquear tu abundancia';
+      case TarotFocus.general:
+        return '3 cartas para descubrir tus energias';
     }
   }
 
@@ -70,6 +199,8 @@ class _TarotScreenState extends State<TarotScreen> {
         return 'Piensa en tu trabajo, proyectos o metas. Estas cartas te mostrarán pasado, presente y tendencia en tu camino profesional.';
       case TarotFocus.money:
         return 'Conéctate con tus finanzas y deseos de estabilidad. Estas cartas te muestran qué energía rodea tu prosperidad y recursos.';
+      case TarotFocus.general:
+        return 'Descubre lo que las cartas aconsejan para ti a nivel general.';
     }
   }
 
@@ -81,6 +212,8 @@ class _TarotScreenState extends State<TarotScreen> {
         return '¿Qué oportunidad se acerca?';
       case TarotFocus.money:
         return '¿Qué puerta de abundancia se abre?';
+      case TarotFocus.general:
+        return '¿Qué energias estan a nivel general?';
     }
   }
 
@@ -92,17 +225,21 @@ class _TarotScreenState extends State<TarotScreen> {
         return 'Revela 6 cartas para intuir qué proyectos, personas o cambios laborales pueden estar tocando a tu puerta.';
       case TarotFocus.money:
         return 'Revela 6 cartas para intuir qué caminos, ideas o ayudas podrían abrirse para mejorar tu economía.';
+      case TarotFocus.general:
+        return 'Revela 6 cartas para descubrir tus energias a nivel general.';
     }
   }
 
   String _labelJuegoFichas() {
     switch (_currentFocus) {
       case TarotFocus.love:
-        return 'Deja que las letras te recuerden nombres, lugares o situaciones donde el amor quiere florecer.';
+        return 'Deja que las iniciales te sugieran el nombre o apellido, de tu alguien especial que pienza en ti o situaciones donde el amor quiere florecer.';
       case TarotFocus.work:
         return 'Permite que las letras te inspiren ideas, proyectos o personas clave para tu crecimiento profesional.';
       case TarotFocus.money:
         return 'Observa qué letras aparecen y qué palabras de abundancia se forman en tu mente (clientes, ciudades, ideas…).';
+      case TarotFocus.general:
+        return 'Deja que tu intuición te recuerde algo de tu vida a nivel general.';
     }
   }
 
@@ -201,18 +338,25 @@ class _TarotScreenState extends State<TarotScreen> {
   }
 
   void _abrirLecturaCompleta(List<TarotCard> cards, String spreadName) {
-    final lite = cards
-        .map(
-          (c) => TarotCardLite(
-            name: c.nombre,
-            imageAsset: c.imagePath,
-            meaningGeneral: c.significado,
-            meaningLove: c.significado,
-            meaningWork: c.significado,
-            meaningMoney: c.significado,
-          ),
-        )
-        .toList();
+    final is3 = spreadName.contains('3');
+
+    final lite = cards.asMap().entries.map((entry) {
+      final i = entry.key;
+      final c = entry.value;
+
+      final posKey = _posKeyFor(spreadName, i);
+
+      return TarotCardLite(
+        name: c.nombre,
+        imageAsset: c.imagePath,
+
+        // ✅ ahora cada área sale distinta y además cambia por posición
+        meaningGeneral: _composeMeaning(card: c, area: 'general', posKey: posKey, is3Cards: is3),
+        meaningLove:    _composeMeaning(card: c, area: 'amor',    posKey: posKey, is3Cards: is3),
+        meaningWork:    _composeMeaning(card: c, area: 'trabajo', posKey: posKey, is3Cards: is3),
+        meaningMoney:   _composeMeaning(card: c, area: 'dinero',  posKey: posKey, is3Cards: is3),
+      );
+    }).toList();
 
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -221,10 +365,12 @@ class _TarotScreenState extends State<TarotScreen> {
           spreadName: spreadName,
           cards: lite,
           question: null,
+          initialArea: _readingType,
         ),
       ),
     );
   }
+
 
   // ----------------- LÓGICA JUEGO FICHAS -----------------
 
@@ -352,6 +498,25 @@ class _TarotScreenState extends State<TarotScreen> {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _readingType = _readingTypeFromFocus(_currentFocus);
+    _loadCopyPacksEs()
+        .then((data) {
+          setState(() {
+            _copyData = data;
+          });
+
+          final packs = data["packs"] as List;
+          final pack = _findPackOrFallback(packs, _readingType, _isPremium);
+          debugPrint("USING PACK (init): ${pack['id']}");
+        })
+        .catchError((e) {
+          debugPrint('ERROR loading copy packs: $e');
+        });
+  }
+
   // ----------------- BUILD -----------------
 
   @override
@@ -420,6 +585,9 @@ class _TarotScreenState extends State<TarotScreen> {
                             onSelected: (_) {
                               setState(() {
                                 _currentFocus = TarotFocus.love;
+                                _readingType = _readingTypeFromFocus(
+                                  _currentFocus,
+                                );
                               });
                             },
                             selectedColor: dorado.withOpacity(0.15),
@@ -443,8 +611,10 @@ class _TarotScreenState extends State<TarotScreen> {
                             onSelected: (_) {
                               setState(() {
                                 _currentFocus = TarotFocus.work;
+                                _readingType = _readingTypeFromFocus(_currentFocus);
                               });
                             },
+
                             selectedColor: dorado.withOpacity(0.15),
                             labelStyle: TextStyle(
                               color: _currentFocus == TarotFocus.work
@@ -466,6 +636,9 @@ class _TarotScreenState extends State<TarotScreen> {
                             onSelected: (_) {
                               setState(() {
                                 _currentFocus = TarotFocus.money;
+                                _readingType = _readingTypeFromFocus(
+                                  _currentFocus,
+                                );
                               });
                             },
                             selectedColor: dorado.withOpacity(0.15),

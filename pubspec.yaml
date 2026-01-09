@@ -29,5 +29,6 @@ flutter:
   assets:
     - assets/
     - assets/tarot/
+    - assets/copy/copy_packs_es.json
 
 

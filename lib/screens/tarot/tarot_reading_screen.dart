@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-
 /// Modelo simple para que lo adaptes a tu TarotCard real.
 /// Si ya tienes clase TarotCard, puedes borrar esto y usar la tuya.
 class TarotCardLite {
@@ -24,6 +23,7 @@ class TarotCardLite {
 }
 
 class TarotReadingScreen extends StatelessWidget {
+  final String initialArea; // "general" | "amor" | "trabajo" | "dinero"
   final String title; // ej: "Lectura del Amor"
   final List<TarotCardLite> cards; // 3 o 6 cartas (las que salieron)
   final String spreadName; // ej: "Tirada de 3" o "Tirada de 6"
@@ -35,6 +35,7 @@ class TarotReadingScreen extends StatelessWidget {
     required this.cards,
     required this.spreadName,
     this.question,
+    this.initialArea = "general",
   });
 
   static const _gold = Color(0xFFFFD700);
@@ -51,10 +52,7 @@ class TarotReadingScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w900),
-        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
         actions: [
           IconButton(
             tooltip: "Copiar lectura",
@@ -106,15 +104,17 @@ class TarotReadingScreen extends StatelessWidget {
                         children: List.generate(3, (i) {
                           return Expanded(
                             child: Padding(
-                              padding: EdgeInsets.only(
-                                right: i == 2 ? 0 : 10,
-                              ),
+                              padding: EdgeInsets.only(right: i == 2 ? 0 : 10),
                               child: _CardTile(
                                 indexLabel: _labelFor3(i),
                                 card: cards[i],
                                 gold: _gold,
                                 pink: _pink,
-                                onTap: () => _openCardDetails(context, cards[i], _labelFor3(i)),
+                                onTap: () => _openCardDetails(
+                                  context,
+                                  cards[i],
+                                  _labelFor3(i),
+                                ),
                               ),
                             ),
                           );
@@ -125,19 +125,24 @@ class TarotReadingScreen extends StatelessWidget {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: cards.length,
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          mainAxisSpacing: 10,
-                          crossAxisSpacing: 10,
-                          childAspectRatio: 0.64,
-                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              mainAxisSpacing: 10,
+                              crossAxisSpacing: 10,
+                              childAspectRatio: 0.64,
+                            ),
                         itemBuilder: (ctx, i) {
                           return _CardTile(
                             indexLabel: _labelFor6(i),
                             card: cards[i],
                             gold: _gold,
                             pink: _pink,
-                            onTap: () => _openCardDetails(context, cards[i], _labelFor6(i)),
+                            onTap: () => _openCardDetails(
+                              context,
+                              cards[i],
+                              _labelFor6(i),
+                            ),
                           );
                         },
                       ),
@@ -148,6 +153,7 @@ class TarotReadingScreen extends StatelessWidget {
               const SizedBox(height: 14),
 
               // Interpretación completa (secciones)
+              // Interpretación completa (enfoque + otras áreas opcional)
               _GlassPanel(
                 gold: _gold,
                 pink: _pink,
@@ -164,32 +170,46 @@ class TarotReadingScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
 
+                    // ✅ SOLO el enfoque elegido
                     _Section(
-                      icon: Icons.auto_awesome_rounded,
-                      title: "Mensaje general",
-                      text: _joinMeanings((c) => c.meaningGeneral),
-                      color: _gold,
+                      icon: _iconForArea(initialArea),
+                      title: _titleForArea(initialArea),
+                      text: _joinMeanings(
+                        (c) => _meaningForArea(c, initialArea),
+                      ),
+                      color: _colorForArea(initialArea),
                     ),
-                    const SizedBox(height: 10),
-                    _Section(
-                      icon: Icons.favorite_rounded,
-                      title: "Amor",
-                      text: _joinMeanings((c) => c.meaningLove),
-                      color: _pink,
-                    ),
-                    const SizedBox(height: 10),
-                    _Section(
-                      icon: Icons.work_rounded,
-                      title: "Trabajo",
-                      text: _joinMeanings((c) => c.meaningWork),
-                      color: Colors.white,
-                    ),
-                    const SizedBox(height: 10),
-                    _Section(
-                      icon: Icons.attach_money_rounded,
-                      title: "Dinero",
-                      text: _joinMeanings((c) => c.meaningMoney),
-                      color: _gold,
+
+                    const SizedBox(height: 12),
+
+                    // ✅ Otras áreas (resumen)
+                    ExpansionTile(
+                      title: const Text(
+                        "Ver otras áreas",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      subtitle: Text(
+                        "Miradas orientativas, si lo deseas.",
+                        style: TextStyle(color: Colors.white54),
+                      ),
+                      collapsedIconColor: Colors.white70,
+                      iconColor: Colors.white70,
+                      children: _otherAreas(initialArea).map((area) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: _Section(
+                            icon: _iconForArea(area),
+                            title: _titleForArea(area),
+                            text: _joinMiniMeanings(
+                              (c) => _meaningForArea(c, area),
+                            ),
+                            color: _colorForArea(area),
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ],
                 ),
@@ -207,7 +227,9 @@ class TarotReadingScreen extends StatelessWidget {
                         backgroundColor: _gold,
                         foregroundColor: Colors.black,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
                         textStyle: const TextStyle(fontWeight: FontWeight.w900),
                       ),
                       child: const Text("Volver"),
@@ -221,7 +243,9 @@ class TarotReadingScreen extends StatelessWidget {
                         foregroundColor: Colors.white,
                         side: BorderSide(color: _pink.withOpacity(0.7)),
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
                         textStyle: const TextStyle(fontWeight: FontWeight.w900),
                       ),
                       child: const Text("Copiar lectura"),
@@ -244,6 +268,82 @@ class TarotReadingScreen extends StatelessWidget {
       buff.writeln("• $label — ${cards[i].name}: ${pick(cards[i])}");
     }
     return buff.toString().trim();
+  }
+
+  String _meaningForArea(TarotCardLite c, String area) {
+    switch (area) {
+      case "amor":
+        return c.meaningLove;
+      case "trabajo":
+        return c.meaningWork;
+      case "dinero":
+        return c.meaningMoney;
+      default:
+        return c.meaningGeneral;
+    }
+  }
+
+  List<String> _otherAreas(String current) {
+    const all = ["general", "amor", "trabajo", "dinero"];
+    return all.where((a) => a != current).toList();
+  }
+
+  String _titleForArea(String area) {
+    switch (area) {
+      case "amor":
+        return "Amor";
+      case "trabajo":
+        return "Trabajo";
+      case "dinero":
+        return "Dinero";
+      default:
+        return "Mensaje general";
+    }
+  }
+
+  IconData _iconForArea(String area) {
+    switch (area) {
+      case "amor":
+        return Icons.favorite_rounded;
+      case "trabajo":
+        return Icons.work_rounded;
+      case "dinero":
+        return Icons.attach_money_rounded;
+      default:
+        return Icons.auto_awesome_rounded;
+    }
+  }
+
+  Color _colorForArea(String area) {
+    switch (area) {
+      case "amor":
+        return _pink;
+      case "trabajo":
+        return Colors.white;
+      case "dinero":
+        return _gold;
+      default:
+        return _gold;
+    }
+  }
+
+  String _joinMiniMeanings(String Function(TarotCardLite c) pick) {
+    final buff = StringBuffer();
+    for (int i = 0; i < cards.length; i++) {
+      final label = cards.length >= 6 ? _labelFor6(i) : _labelFor3(i);
+      final full = pick(cards[i]);
+      final mini = _firstSentence(full);
+      buff.writeln("• $label — ${cards[i].name}: $mini");
+    }
+    return buff.toString().trim();
+  }
+
+  String _firstSentence(String s) {
+    final t = s.trim();
+    if (t.isEmpty) return "";
+    final idx = t.indexOf(RegExp(r'[.!?]\s'));
+    if (idx == -1) return t.length <= 90 ? t : "${t.substring(0, 90)}…";
+    return t.substring(0, idx + 1);
   }
 
   String _labelFor3(int i) {
@@ -274,7 +374,8 @@ class TarotReadingScreen extends StatelessWidget {
     final text = [
       title,
       spreadName,
-      if (question != null && question!.trim().isNotEmpty) "Pregunta: $question",
+      if (question != null && question!.trim().isNotEmpty)
+        "Pregunta: $question",
       "",
       "Cartas:",
       ...List.generate(cards.length, (i) {
@@ -297,12 +398,16 @@ class TarotReadingScreen extends StatelessWidget {
 
     await Clipboard.setData(ClipboardData(text: text));
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Lectura copiada ✅")),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("Lectura copiada ✅")));
   }
 
-  void _openCardDetails(BuildContext context, TarotCardLite card, String posLabel) {
+  void _openCardDetails(
+    BuildContext context,
+    TarotCardLite card,
+    String posLabel,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -330,7 +435,10 @@ class TarotReadingScreen extends StatelessWidget {
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(ctx),
-                      icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: Colors.white70,
+                      ),
                     ),
                   ],
                 ),
@@ -345,7 +453,10 @@ class TarotReadingScreen extends StatelessWidget {
                         Image.asset(card.imageAsset, fit: BoxFit.cover),
                         Container(
                           decoration: BoxDecoration(
-                            border: Border.all(color: _gold.withOpacity(0.65), width: 1.2),
+                            border: Border.all(
+                              color: _gold.withOpacity(0.65),
+                              width: 1.2,
+                            ),
                             borderRadius: BorderRadius.circular(18),
                           ),
                         ),
@@ -354,13 +465,29 @@ class TarotReadingScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                _MiniMeaning(title: "General", text: card.meaningGeneral, color: _gold),
+                _MiniMeaning(
+                  title: "General",
+                  text: card.meaningGeneral,
+                  color: _gold,
+                ),
                 const SizedBox(height: 8),
-                _MiniMeaning(title: "Amor", text: card.meaningLove, color: _pink),
+                _MiniMeaning(
+                  title: "Amor",
+                  text: card.meaningLove,
+                  color: _pink,
+                ),
                 const SizedBox(height: 8),
-                _MiniMeaning(title: "Trabajo", text: card.meaningWork, color: Colors.white),
+                _MiniMeaning(
+                  title: "Trabajo",
+                  text: card.meaningWork,
+                  color: Colors.white,
+                ),
                 const SizedBox(height: 8),
-                _MiniMeaning(title: "Dinero", text: card.meaningMoney, color: _gold),
+                _MiniMeaning(
+                  title: "Dinero",
+                  text: card.meaningMoney,
+                  color: _gold,
+                ),
               ],
             ),
           ),
@@ -373,12 +500,14 @@ class TarotReadingScreen extends StatelessWidget {
 class _HeaderCard extends StatelessWidget {
   final String spreadName;
   final String? question;
+  final String initialArea;
   final Color gold;
   final Color pink;
 
   const _HeaderCard({
     required this.spreadName,
     required this.question,
+    this.initialArea = "general",
     required this.gold,
     required this.pink,
   });
@@ -425,6 +554,7 @@ class _HeaderCard extends StatelessWidget {
 class _Chip extends StatelessWidget {
   final String text;
   final Color color;
+
   const _Chip({required this.text, required this.color});
 
   @override
@@ -520,7 +650,10 @@ class _CardTile extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: gold.withOpacity(0.65), width: 1.2),
+                      border: Border.all(
+                        color: gold.withOpacity(0.65),
+                        width: 1.2,
+                      ),
                     ),
                   ),
                 ),
@@ -528,7 +661,10 @@ class _CardTile extends StatelessWidget {
                   top: 8,
                   left: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(14),
                       color: Colors.black.withOpacity(0.35),
@@ -605,7 +741,10 @@ class _Section extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             text,
-            style: TextStyle(color: Colors.white.withOpacity(0.85), height: 1.28),
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.85),
+              height: 1.28,
+            ),
           ),
         ],
       ),
@@ -647,7 +786,10 @@ class _MiniMeaning extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             text,
-            style: TextStyle(color: Colors.white.withOpacity(0.85), height: 1.25),
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.85),
+              height: 1.25,
+            ),
           ),
         ],
       ),

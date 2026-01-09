@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'mystic_tools/tabs/tombola_tab.dart';
+
+
 
 // ====== UI helpers (glow + card + pill + gold button) ======
 
@@ -92,7 +95,7 @@ class MysticToolsScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -108,11 +111,13 @@ class MysticToolsScreen extends StatelessWidget {
           elevation: 0,
           backgroundColor: Colors.transparent,
           bottom: const TabBar(
+            isScrollable: true,
             indicatorColor: _kGold,
             tabs: [
-              Tab(text: 'Dados mágicos'),
-              Tab(text: 'Ruleta de mensajes'),
-              Tab(text: 'Flor del amor'),
+              Tab(text: 'Dado'),
+              Tab(text: 'Ruleta '),
+              Tab(text: 'Flor Amor'),
+              Tab(text: 'Tómbola'),
             ],
           ),
         ),
@@ -131,6 +136,7 @@ class MysticToolsScreen extends StatelessWidget {
                 MysticDiceTab(),
                 MagicRouletteTab(),
                 FlowerPetalTab(),
+                TombolaTab(),
               ],
             ),
           ),

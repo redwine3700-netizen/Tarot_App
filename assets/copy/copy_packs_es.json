@@ -117,6 +117,29 @@
         "maxChars": 430,
         "noRepeat": { "cooldownSessions": 2 }
       },
+      "three_cards": {
+        "pasado": [
+          { "id": "3C_P_01", "text": "Esto viene de una experiencia reciente que todavía influye.", "weight": 3 },
+          { "id": "3C_P_02", "text": "Aquí hay una huella que dejó una lección importante.", "weight": 2 },
+          { "id": "3C_P_03", "text": "Tu historia previa marca el punto de partida de hoy.", "weight": 2 }
+        ],
+        "presente": [
+          { "id": "3C_PR_01", "text": "Ahora se ve con claridad lo que estás sosteniendo.", "weight": 3 },
+          { "id": "3C_PR_02", "text": "El presente te pide foco: menos ruido, más verdad.", "weight": 2 },
+          { "id": "3C_PR_03", "text": "Lo esencial hoy es decidir desde calma, no desde prisa.", "weight": 2 }
+        ],
+        "futuro": [
+          { "id": "3C_F_01", "text": "Si mantienes este rumbo, esto tiende a manifestarse.", "weight": 3 },
+          { "id": "3C_F_02", "text": "La tendencia apunta a un ajuste que mejora tu camino.", "weight": 2 },
+          { "id": "3C_F_03", "text": "Lo que viene no está escrito: se define con tu constancia.", "weight": 2 }
+        ],
+        "microaccion": [
+          { "id": "3C_M_01", "text": "Prioriza una sola cosa hoy.", "weight": 3 },
+          { "id": "3C_M_02", "text": "Elige una acción mínima y cúmplela.", "weight": 2 },
+          { "id": "3C_M_03", "text": "Corta una distracción importante por 24 horas.", "weight": 2 }
+        ]
+      },
+
       "blocks": {
         "apertura": [
           { "id": "GF_A_01", "text": "Respira. Aquí llega un mensaje suave para tu día.", "weight": 3 },
@@ -151,6 +174,29 @@
         "maxChars": 540,
         "noRepeat": { "cooldownSessions": 3 }
       },
+      "three_cards": {
+        "pasado": [
+          { "id": "3C_P_01", "text": "Esto viene de una experiencia reciente que todavía influye.", "weight": 3 },
+          { "id": "3C_P_02", "text": "Aquí hay una huella que dejó una lección importante.", "weight": 2 },
+          { "id": "3C_P_03", "text": "Tu historia previa marca el punto de partida de hoy.", "weight": 2 }
+        ],
+        "presente": [
+          { "id": "3C_PR_01", "text": "Ahora se ve con claridad lo que estás sosteniendo.", "weight": 3 },
+          { "id": "3C_PR_02", "text": "El presente te pide foco: menos ruido, más verdad.", "weight": 2 },
+          { "id": "3C_PR_03", "text": "Lo esencial hoy es decidir desde calma, no desde prisa.", "weight": 2 }
+        ],
+        "futuro": [
+          { "id": "3C_F_01", "text": "Si mantienes este rumbo, esto tiende a manifestarse.", "weight": 3 },
+          { "id": "3C_F_02", "text": "La tendencia apunta a un ajuste que mejora tu camino.", "weight": 2 },
+          { "id": "3C_F_03", "text": "Lo que viene no está escrito: se define con tu constancia.", "weight": 2 }
+        ],
+        "microaccion": [
+          { "id": "3C_M_01", "text": "Prioriza una sola cosa hoy.", "weight": 3 },
+          { "id": "3C_M_02", "text": "Elige una acción mínima y cúmplela.", "weight": 2 },
+          { "id": "3C_M_03", "text": "Corta una distracción importante por 24 horas.", "weight": 2 }
+        ]
+      },
+
       "blocks": {
         "apertura": [
           { "id": "GP_A_01", "text": "Esta lectura baja el ruido y sube la verdad.", "weight": 3 },
@@ -189,6 +235,29 @@
         "maxChars": 430,
         "noRepeat": { "cooldownSessions": 2 }
       },
+      "three_cards": {
+        "pasado": [
+          { "id": "3C_P_01", "text": "Esto viene de una experiencia reciente que todavía influye.", "weight": 3 },
+          { "id": "3C_P_02", "text": "Aquí hay una huella que dejó una lección importante.", "weight": 2 },
+          { "id": "3C_P_03", "text": "Tu historia previa marca el punto de partida de hoy.", "weight": 2 }
+        ],
+        "presente": [
+          { "id": "3C_PR_01", "text": "Ahora se ve con claridad lo que estás sosteniendo.", "weight": 3 },
+          { "id": "3C_PR_02", "text": "El presente te pide foco: menos ruido, más verdad.", "weight": 2 },
+          { "id": "3C_PR_03", "text": "Lo esencial hoy es decidir desde calma, no desde prisa.", "weight": 2 }
+        ],
+        "futuro": [
+          { "id": "3C_F_01", "text": "Si mantienes este rumbo, esto tiende a manifestarse.", "weight": 3 },
+          { "id": "3C_F_02", "text": "La tendencia apunta a un ajuste que mejora tu camino.", "weight": 2 },
+          { "id": "3C_F_03", "text": "Lo que viene no está escrito: se define con tu constancia.", "weight": 2 }
+        ],
+        "microaccion": [
+          { "id": "3C_M_01", "text": "Prioriza una sola cosa hoy.", "weight": 3 },
+          { "id": "3C_M_02", "text": "Elige una acción mínima y cúmplela.", "weight": 2 },
+          { "id": "3C_M_03", "text": "Corta una distracción importante por 24 horas.", "weight": 2 }
+        ]
+      },
+
       "blocks": {
         "apertura": [
           { "id": "AF_A_01", "text": "Respira. El tarot mira tu corazón con suavidad.", "weight": 3 },
@@ -222,6 +291,29 @@
         "maxChars": 540,
         "noRepeat": { "cooldownSessions": 3 }
       },
+      "three_cards": {
+        "pasado": [
+          { "id": "3C_P_01", "text": "Esto viene de una experiencia reciente que todavía influye.", "weight": 3 },
+          { "id": "3C_P_02", "text": "Aquí hay una huella que dejó una lección importante.", "weight": 2 },
+          { "id": "3C_P_03", "text": "Tu historia previa marca el punto de partida de hoy.", "weight": 2 }
+        ],
+        "presente": [
+          { "id": "3C_PR_01", "text": "Ahora se ve con claridad lo que estás sosteniendo.", "weight": 3 },
+          { "id": "3C_PR_02", "text": "El presente te pide foco: menos ruido, más verdad.", "weight": 2 },
+          { "id": "3C_PR_03", "text": "Lo esencial hoy es decidir desde calma, no desde prisa.", "weight": 2 }
+        ],
+        "futuro": [
+          { "id": "3C_F_01", "text": "Si mantienes este rumbo, esto tiende a manifestarse.", "weight": 3 },
+          { "id": "3C_F_02", "text": "La tendencia apunta a un ajuste que mejora tu camino.", "weight": 2 },
+          { "id": "3C_F_03", "text": "Lo que viene no está escrito: se define con tu constancia.", "weight": 2 }
+        ],
+        "microaccion": [
+          { "id": "3C_M_01", "text": "Prioriza una sola cosa hoy.", "weight": 3 },
+          { "id": "3C_M_02", "text": "Elige una acción mínima y cúmplela.", "weight": 2 },
+          { "id": "3C_M_03", "text": "Corta una distracción importante por 24 horas.", "weight": 2 }
+        ]
+      },
+
       "blocks": {
         "apertura": [
           { "id": "AP_A_01", "text": "Esta lectura mira tu corazón con precisión suave.", "weight": 3 },
@@ -260,6 +352,29 @@
         "maxChars": 430,
         "noRepeat": { "cooldownSessions": 2 }
       },
+      "three_cards": {
+        "pasado": [
+          { "id": "3C_P_01", "text": "Esto viene de una experiencia reciente que todavía influye.", "weight": 3 },
+          { "id": "3C_P_02", "text": "Aquí hay una huella que dejó una lección importante.", "weight": 2 },
+          { "id": "3C_P_03", "text": "Tu historia previa marca el punto de partida de hoy.", "weight": 2 }
+        ],
+        "presente": [
+          { "id": "3C_PR_01", "text": "Ahora se ve con claridad lo que estás sosteniendo.", "weight": 3 },
+          { "id": "3C_PR_02", "text": "El presente te pide foco: menos ruido, más verdad.", "weight": 2 },
+          { "id": "3C_PR_03", "text": "Lo esencial hoy es decidir desde calma, no desde prisa.", "weight": 2 }
+        ],
+        "futuro": [
+          { "id": "3C_F_01", "text": "Si mantienes este rumbo, esto tiende a manifestarse.", "weight": 3 },
+          { "id": "3C_F_02", "text": "La tendencia apunta a un ajuste que mejora tu camino.", "weight": 2 },
+          { "id": "3C_F_03", "text": "Lo que viene no está escrito: se define con tu constancia.", "weight": 2 }
+        ],
+        "microaccion": [
+          { "id": "3C_M_01", "text": "Prioriza una sola cosa hoy.", "weight": 3 },
+          { "id": "3C_M_02", "text": "Elige una acción mínima y cúmplela.", "weight": 2 },
+          { "id": "3C_M_03", "text": "Corta una distracción importante por 24 horas.", "weight": 2 }
+        ]
+      },
+
       "blocks": {
         "apertura": [
           { "id": "TF_A_01", "text": "Respira. Hoy el tarot mira tu camino profesional con claridad.", "weight": 3 },
@@ -293,6 +408,29 @@
         "maxChars": 540,
         "noRepeat": { "cooldownSessions": 3 }
       },
+      "three_cards": {
+        "pasado": [
+          { "id": "3C_P_01", "text": "Esto viene de una experiencia reciente que todavía influye.", "weight": 3 },
+          { "id": "3C_P_02", "text": "Aquí hay una huella que dejó una lección importante.", "weight": 2 },
+          { "id": "3C_P_03", "text": "Tu historia previa marca el punto de partida de hoy.", "weight": 2 }
+        ],
+        "presente": [
+          { "id": "3C_PR_01", "text": "Ahora se ve con claridad lo que estás sosteniendo.", "weight": 3 },
+          { "id": "3C_PR_02", "text": "El presente te pide foco: menos ruido, más verdad.", "weight": 2 },
+          { "id": "3C_PR_03", "text": "Lo esencial hoy es decidir desde calma, no desde prisa.", "weight": 2 }
+        ],
+        "futuro": [
+          { "id": "3C_F_01", "text": "Si mantienes este rumbo, esto tiende a manifestarse.", "weight": 3 },
+          { "id": "3C_F_02", "text": "La tendencia apunta a un ajuste que mejora tu camino.", "weight": 2 },
+          { "id": "3C_F_03", "text": "Lo que viene no está escrito: se define con tu constancia.", "weight": 2 }
+        ],
+        "microaccion": [
+          { "id": "3C_M_01", "text": "Prioriza una sola cosa hoy.", "weight": 3 },
+          { "id": "3C_M_02", "text": "Elige una acción mínima y cúmplela.", "weight": 2 },
+          { "id": "3C_M_03", "text": "Corta una distracción importante por 24 horas.", "weight": 2 }
+        ]
+      },
+
       "blocks": {
         "apertura": [
           { "id": "TP_A_01", "text": "Tu trabajo no es solo agenda: es identidad en movimiento.", "weight": 3 },
@@ -331,6 +469,29 @@
         "maxChars": 430,
         "noRepeat": { "cooldownSessions": 2 }
       },
+      "three_cards": {
+        "pasado": [
+          { "id": "3C_P_01", "text": "Esto viene de una experiencia reciente que todavía influye.", "weight": 3 },
+          { "id": "3C_P_02", "text": "Aquí hay una huella que dejó una lección importante.", "weight": 2 },
+          { "id": "3C_P_03", "text": "Tu historia previa marca el punto de partida de hoy.", "weight": 2 }
+        ],
+        "presente": [
+          { "id": "3C_PR_01", "text": "Ahora se ve con claridad lo que estás sosteniendo.", "weight": 3 },
+          { "id": "3C_PR_02", "text": "El presente te pide foco: menos ruido, más verdad.", "weight": 2 },
+          { "id": "3C_PR_03", "text": "Lo esencial hoy es decidir desde calma, no desde prisa.", "weight": 2 }
+        ],
+        "futuro": [
+          { "id": "3C_F_01", "text": "Si mantienes este rumbo, esto tiende a manifestarse.", "weight": 3 },
+          { "id": "3C_F_02", "text": "La tendencia apunta a un ajuste que mejora tu camino.", "weight": 2 },
+          { "id": "3C_F_03", "text": "Lo que viene no está escrito: se define con tu constancia.", "weight": 2 }
+        ],
+        "microaccion": [
+          { "id": "3C_M_01", "text": "Prioriza una sola cosa hoy.", "weight": 3 },
+          { "id": "3C_M_02", "text": "Elige una acción mínima y cúmplela.", "weight": 2 },
+          { "id": "3C_M_03", "text": "Corta una distracción importante por 24 horas.", "weight": 2 }
+        ]
+      },
+
       "blocks": {
         "apertura": [
           { "id": "DF_A_01", "text": "Respira. Hoy miramos tu economía con claridad y calma.", "weight": 3 },
@@ -364,6 +525,29 @@
         "maxChars": 540,
         "noRepeat": { "cooldownSessions": 3 }
       },
+      "three_cards": {
+        "pasado": [
+          { "id": "3C_P_01", "text": "Esto viene de una experiencia reciente que todavía influye.", "weight": 3 },
+          { "id": "3C_P_02", "text": "Aquí hay una huella que dejó una lección importante.", "weight": 2 },
+          { "id": "3C_P_03", "text": "Tu historia previa marca el punto de partida de hoy.", "weight": 2 }
+        ],
+        "presente": [
+          { "id": "3C_PR_01", "text": "Ahora se ve con claridad lo que estás sosteniendo.", "weight": 3 },
+          { "id": "3C_PR_02", "text": "El presente te pide foco: menos ruido, más verdad.", "weight": 2 },
+          { "id": "3C_PR_03", "text": "Lo esencial hoy es decidir desde calma, no desde prisa.", "weight": 2 }
+        ],
+        "futuro": [
+          { "id": "3C_F_01", "text": "Si mantienes este rumbo, esto tiende a manifestarse.", "weight": 3 },
+          { "id": "3C_F_02", "text": "La tendencia apunta a un ajuste que mejora tu camino.", "weight": 2 },
+          { "id": "3C_F_03", "text": "Lo que viene no está escrito: se define con tu constancia.", "weight": 2 }
+        ],
+        "microaccion": [
+          { "id": "3C_M_01", "text": "Prioriza una sola cosa hoy.", "weight": 3 },
+          { "id": "3C_M_02", "text": "Elige una acción mínima y cúmplela.", "weight": 2 },
+          { "id": "3C_M_03", "text": "Corta una distracción importante por 24 horas.", "weight": 2 }
+        ]
+      },
+
       "blocks": {
         "apertura": [
           { "id": "DP_A_01", "text": "La abundancia se sostiene con hábitos simples y verdad interna.", "weight": 3 },

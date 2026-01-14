@@ -126,22 +126,22 @@ class TarotReadingScreen extends StatelessWidget {
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: cards.length,
                         gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              mainAxisSpacing: 10,
-                              crossAxisSpacing: 10,
-                              childAspectRatio: 0.64,
-                            ),
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          mainAxisSpacing: 10,
+                          crossAxisSpacing: 10,
+                          childAspectRatio: 0.64,
+                        ),
                         itemBuilder: (ctx, i) {
                           return _CardTile(
-                            indexLabel: _labelFor6(i),
+                            indexLabel: _labelFor6(i, category: initialArea),
                             card: cards[i],
                             gold: _gold,
                             pink: _pink,
                             onTap: () => _openCardDetails(
                               context,
                               cards[i],
-                              _labelFor6(i),
+                              _labelFor6(i, category: initialArea),
                             ),
                           );
                         },
@@ -174,8 +174,9 @@ class TarotReadingScreen extends StatelessWidget {
                     _Section(
                       icon: _iconForArea(initialArea),
                       title: _titleForArea(initialArea),
-                      text: _joinMeanings(
-                        (c) => _meaningForArea(c, initialArea),
+                      text: _joinMeaningsForArea(
+                        initialArea,
+                            (c) => _meaningForArea(c, initialArea),
                       ),
                       color: _colorForArea(initialArea),
                     ),
@@ -203,9 +204,8 @@ class TarotReadingScreen extends StatelessWidget {
                           child: _Section(
                             icon: _iconForArea(area),
                             title: _titleForArea(area),
-                            text: _joinMiniMeanings(
-                              (c) => _meaningForArea(c, area),
-                            ),
+                            text: _joinMiniMeaningsForArea(area, (c) => _meaningForArea(c, area)),
+
                             color: _colorForArea(area),
                           ),
                         );
@@ -260,12 +260,19 @@ class TarotReadingScreen extends StatelessWidget {
     );
   }
 
-  String _joinMeanings(String Function(TarotCardLite c) pick) {
-    // 1 línea por carta, queda hermoso y claro.
+  String _joinMiniMeaningsForArea(
+      String area,
+      String Function(TarotCardLite c) pick,
+      ) {
     final buff = StringBuffer();
     for (int i = 0; i < cards.length; i++) {
-      final label = cards.length >= 6 ? _labelFor6(i) : _labelFor3(i);
-      buff.writeln("• $label — ${cards[i].name}: ${pick(cards[i])}");
+      final label = cards.length >= 6
+          ? _labelFor6BySection(i, area) // ✅ ahora sí: "Amor", "Trabajo", "Dinero", "Mensaje general"
+          : _labelFor3(i);
+
+      final full = pick(cards[i]);
+      final mini = _firstSentence(full);
+      buff.writeln("• $label — ${cards[i].name}: $mini");
     }
     return buff.toString().trim();
   }
@@ -300,6 +307,22 @@ class TarotReadingScreen extends StatelessWidget {
         return "Mensaje general";
     }
   }
+  String _joinMeaningsForArea(
+      String area,
+      String Function(TarotCardLite c) pick,
+      ) {
+    final buff = StringBuffer();
+    for (int i = 0; i < cards.length; i++) {
+      final label = cards.length >= 6
+          ? _labelFor6BySection(i, area)
+          : _labelFor3(i);
+
+      final full = pick(cards[i]);
+      buff.writeln("• $label — ${cards[i].name}: $full");
+    }
+    return buff.toString().trim();
+  }
+
 
   IconData _iconForArea(String area) {
     switch (area) {
@@ -330,7 +353,9 @@ class TarotReadingScreen extends StatelessWidget {
   String _joinMiniMeanings(String Function(TarotCardLite c) pick) {
     final buff = StringBuffer();
     for (int i = 0; i < cards.length; i++) {
-      final label = cards.length >= 6 ? _labelFor6(i) : _labelFor3(i);
+      final label = cards.length >= 6
+      ?_labelFor6BySection(i, "$title $spreadName") // <-- "Amor", "Trabajo", "Dinero", "Mensaje general"
+          : _labelFor3(i);
       final full = pick(cards[i]);
       final mini = _firstSentence(full);
       buff.writeln("• $label — ${cards[i].name}: $mini");
@@ -357,57 +382,97 @@ class TarotReadingScreen extends StatelessWidget {
     }
   }
 
-  String _labelFor6(int i) {
-    // Puedes cambiar estos nombres como quieras
-    const labels = [
+
+  String _labelFor6(int i, {String? category}) {
+    // Fallback: si nadie pasa category, usamos el área/título que ya están en pantalla
+    final ctx = (category ?? "$initialArea $title $spreadName").toLowerCase().trim();
+
+    // 0: Energía, 1: Tú, 2: (varía), 3: Bloqueo, 4: Consejo, 5: Resultado
+    final thirdLabel = (ctx.contains("trabajo") || ctx.contains("work"))
+        ? "Entorno Laboral"
+        : (ctx.contains("dinero") || ctx.contains("money"))
+        ? "Factor externo"
+        : "La otra persona";
+
+    final labels = [
       "Energía",
       "Tú",
-      "La otra persona",
+      thirdLabel,
       "Bloqueo",
       "Consejo",
       "Resultado",
     ];
+
     return labels[i.clamp(0, labels.length - 1)];
   }
+
+  String _labelFor6BySection(int i, String section) {
+    final s = section.toLowerCase();
+
+    final thirdLabel = s.contains("amor")
+        ? "La otra persona"
+        : (s.contains("trab") || s.contains("work"))
+        ? "Entorno laboral" // o "Actor clave"
+        : (s.contains("din") || s.contains("money"))
+        ? "Factor externo"
+        : "Influencia"; // Mensaje general
+
+    final labels = [
+      "Energía",
+      "Tú",
+      thirdLabel,
+      "Bloqueo",
+      "Consejo",
+      "Resultado",
+    ];
+
+    return labels[i.clamp(0, labels.length - 1)];
+  }
+
+
+
 
   Future<void> _copyReading(BuildContext context) async {
     final text = [
       title,
       spreadName,
-      if (question != null && question!.trim().isNotEmpty)
-        "Pregunta: $question",
+      if (question != null && question!.trim().isNotEmpty) "Pregunta: $question",
       "",
       "Cartas:",
       ...List.generate(cards.length, (i) {
-        final label = cards.length >= 6 ? _labelFor6(i) : _labelFor3(i);
+        final label = cards.length >= 6
+            ? _labelFor6(i, category: initialArea)
+            : _labelFor3(i);
         return "• $label: ${cards[i].name}";
       }),
       "",
       "Interpretación:",
-      _joinMeanings((c) => c.meaningGeneral),
+      _joinMeaningsForArea("general", (c) => _meaningForArea(c, "general")),
       "",
       "Amor:",
-      _joinMeanings((c) => c.meaningLove),
+      _joinMeaningsForArea("amor", (c) => _meaningForArea(c, "amor")),
       "",
       "Trabajo:",
-      _joinMeanings((c) => c.meaningWork),
+      _joinMeaningsForArea("trabajo", (c) => _meaningForArea(c, "trabajo")),
       "",
       "Dinero:",
-      _joinMeanings((c) => c.meaningMoney),
+      _joinMeaningsForArea("dinero", (c) => _meaningForArea(c, "dinero")),
     ].join("\n");
 
     await Clipboard.setData(ClipboardData(text: text));
     if (!context.mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text("Lectura copiada ✅")));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Lectura copiada ✅")),
+    );
   }
 
+
+
   void _openCardDetails(
-    BuildContext context,
-    TarotCardLite card,
-    String posLabel,
-  ) {
+      BuildContext context,
+      TarotCardLite card,
+      String posLabel,
+      ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,

@@ -170,6 +170,22 @@ class TarotReadingScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
 
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: _colorForArea(initialArea).withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: _colorForArea(initialArea).withOpacity(0.35)),
+                      ),
+                      child: Text(
+                        _summaryForArea(initialArea),
+                        style: const TextStyle(height: 1.25),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+
                     // ✅ SOLO el enfoque elegido
                     _Section(
                       icon: _iconForArea(initialArea),
@@ -180,6 +196,21 @@ class TarotReadingScreen extends StatelessWidget {
                       ),
                       color: _colorForArea(initialArea),
                     ),
+                    const SizedBox(height: 10),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: _colorForArea(initialArea).withOpacity(0.10),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: _colorForArea(initialArea).withOpacity(0.35)),
+                      ),
+                      child: Text(
+                        _microActionForArea(initialArea),
+                        style: const TextStyle(height: 1.25),
+                      ),
+                    ),
+
 
                     const SizedBox(height: 12),
 
@@ -322,6 +353,34 @@ class TarotReadingScreen extends StatelessWidget {
     }
     return buff.toString().trim();
   }
+  String _summaryForArea(String area) {
+    final a = area.toLowerCase();
+    if (a.contains("amor") || a.contains("love")) {
+      return "Resumen: hoy manda la honestidad emocional.\nSeñales por hechos, no por suposiciones.";
+    }
+    if (a.contains("trab") || a.contains("work")) {
+      return "Resumen: ordena el tablero y protege tu foco.\nGana el movimiento correcto, no el más rápido.";
+    }
+    if (a.contains("din") || a.contains("money")) {
+      return "Resumen: corta fugas y vuelve al control.\nOrden primero, expansión después.";
+    }
+    return "Resumen: mira el mensaje central y actúa con calma.\nLo simple hoy vale más que lo perfecto.";
+  }
+
+  String _microActionForArea(String area) {
+    final a = area.toLowerCase();
+    if (a.contains("amor") || a.contains("love")) {
+      return "Microacción única: envía un mensaje claro y corto: “¿Hablamos esta semana?”\nLuego suelta el control y observa la respuesta real.";
+    }
+    if (a.contains("trab") || a.contains("work")) {
+      return "Microacción única: sprint 20 min.\nElige 1 tarea clave y completa el primer 30% hoy (sin multitarea).";
+    }
+    if (a.contains("din") || a.contains("money")) {
+      return "Microacción única: identifica 1 fuga (suscripción/gasto hormiga) y córtala por 30 días.\nEse gesto ordena tu energía financiera.";
+    }
+    return "Microacción única: elige 1 cosa y hazla hoy, pequeña pero completa.";
+  }
+
 
 
   IconData _iconForArea(String area) {
@@ -392,7 +451,7 @@ class TarotReadingScreen extends StatelessWidget {
         ? "Entorno Laboral"
         : (ctx.contains("dinero") || ctx.contains("money"))
         ? "Factor externo"
-        : "La otra persona";
+        : "Tú persona especial";
 
     final labels = [
       "Energía",
@@ -410,7 +469,7 @@ class TarotReadingScreen extends StatelessWidget {
     final s = section.toLowerCase();
 
     final thirdLabel = s.contains("amor")
-        ? "La otra persona"
+        ? "Tú persona especial"
         : (s.contains("trab") || s.contains("work"))
         ? "Entorno laboral" // o "Actor clave"
         : (s.contains("din") || s.contains("money"))
@@ -438,6 +497,9 @@ class TarotReadingScreen extends StatelessWidget {
       spreadName,
       if (question != null && question!.trim().isNotEmpty) "Pregunta: $question",
       "",
+      "Resumen:",
+      _summaryForArea(initialArea),
+      "",
       "Cartas:",
       ...List.generate(cards.length, (i) {
         final label = cards.length >= 6
@@ -457,6 +519,8 @@ class TarotReadingScreen extends StatelessWidget {
       "",
       "Dinero:",
       _joinMeaningsForArea("dinero", (c) => _meaningForArea(c, "dinero")),
+      "",
+      _microActionForArea(initialArea),
     ].join("\n");
 
     await Clipboard.setData(ClipboardData(text: text));

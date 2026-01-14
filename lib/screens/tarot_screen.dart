@@ -114,16 +114,16 @@ class _TarotScreenState extends State<TarotScreen> {
     final is3 = spreadName.contains('3');
     if (is3) return const ['pasado', 'presente', 'futuro'][index];
 
-    // 6 cartas (puedes cambiar nombres si quieres)
     return const [
       'energia',
       'bloqueo',
       'ayuda',
       'consejo',
       'resultado',
-      'clave'
+      'clave',
     ][index];
   }
+
 
   String _composeMeaning({
     required TarotCard card,

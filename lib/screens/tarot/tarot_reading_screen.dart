@@ -360,9 +360,9 @@ class TarotReadingScreen extends StatelessWidget {
   String _labelFor6(int i) {
     // Puedes cambiar estos nombres como quieras
     const labels = [
+      "Energía",
       "Tú",
       "La otra persona",
-      "Energía",
       "Bloqueo",
       "Consejo",
       "Resultado",

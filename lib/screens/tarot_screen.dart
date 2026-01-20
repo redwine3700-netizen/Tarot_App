@@ -1,12 +1,13 @@
+import 'dart:convert';
 import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 import '../models/tarot_models.dart';
-import 'pendulum_screen.dart';
 import 'mystic_tools_screen.dart';
+import 'pendulum_screen.dart';
 import 'tarot/tarot_reading_screen.dart';
-import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
 
 enum TarotFocus { general, love, work, money }
 
@@ -18,11 +19,18 @@ class TarotScreen extends StatefulWidget {
 }
 
 class _TarotScreenState extends State<TarotScreen> {
-  TarotFocus _currentFocus =
-      TarotFocus.love; // o TarotFocus.general si ya existe
+  // ===== Theme helpers (evita errores de scheme/theme en métodos) =====
+  ThemeData get theme => Theme.of(context);
+  ColorScheme get scheme => theme.colorScheme;
 
-  String _readingType = "general"; // "amor", "trabajo", "dinero"
-  bool _isPremium = false; // después lo conectamos con tu premium real
+  /// Mantengo el nombre "dorado" para no romper tu UI,
+  /// pero ahora es el acento principal del tema (rosé).
+  Color get dorado => scheme.primary;
+
+  // ===== Estado enfoque / packs =====
+  TarotFocus _currentFocus = TarotFocus.love;
+  String _readingType = "general";
+  bool _isPremium = false;
   Map<String, dynamic>? _copyData;
 
   String _readingTypeFromFocus(TarotFocus focus) {
@@ -44,10 +52,10 @@ class _TarotScreenState extends State<TarotScreen> {
   }
 
   Map<String, dynamic> _findPackOrFallback(
-    List packs,
-    String readingType,
-    bool isPremium,
-  ) {
+      List packs,
+      String readingType,
+      bool isPremium,
+      ) {
     final desiredId = _packIdFor(readingType, isPremium);
     final fallbackId = _packIdFor("general", isPremium);
 
@@ -73,10 +81,8 @@ class _TarotScreenState extends State<TarotScreen> {
 
   final Random _random = Random();
 
-  // Tirada 3 cartas
+  // Tiradas
   List<TarotCard>? _lecturaTresCartas;
-
-  // Tirada 6 cartas
   List<TarotCard>? _lecturaSeisCartas;
 
   // Sí / No
@@ -91,8 +97,8 @@ class _TarotScreenState extends State<TarotScreen> {
   int _contadorFichasSeleccionadas = 0;
   bool _juegoFichasIniciado = false;
 
+  // ===== Copys dinámicos por carta =====
   String _normalizeCardKey(String name) {
-    // "El Sol" -> "EL_SOL" (ajusta si tus keys son distintas)
     final s = name
         .toUpperCase()
         .replaceAll('Á', 'A')
@@ -124,19 +130,17 @@ class _TarotScreenState extends State<TarotScreen> {
     ][index];
   }
 
-
   String _composeMeaning({
     required TarotCard card,
-    required String area,     // "general" | "amor" | "trabajo" | "dinero"
-    required String posKey,   // "pasado" | "presente" | "futuro" | etc
+    required String area,
+    required String posKey,
     required bool is3Cards,
   }) {
     if (_copyData == null) return card.significado;
 
     final banks = _copyData!['banks'] as Map<String, dynamic>;
-
-    // posiciones: para 3 usamos posicion_3; para 6 puedes reutilizar o crear otro bank después
-    final posBank = (banks[is3Cards ? 'posicion_3' : 'posicion_3'] as Map<String, dynamic>);
+    final posBank =
+    (banks[is3Cards ? 'posicion_3' : 'posicion_3'] as Map<String, dynamic>);
     final posList = (posBank[posKey] as List<dynamic>?) ?? const [];
     final lensBank = banks['lente_area'] as Map<String, dynamic>;
     final lensList = (lensBank[area] as List<dynamic>?) ?? const [];
@@ -153,7 +157,6 @@ class _TarotScreenState extends State<TarotScreen> {
         : card.significado;
     final micro = microList.isNotEmpty ? _pick(microList) : '';
 
-    // armado final premium: corto + variado
     return [
       if (pos.isNotEmpty) pos,
       if (lens.isNotEmpty) lens,
@@ -162,9 +165,7 @@ class _TarotScreenState extends State<TarotScreen> {
     ].join('\n');
   }
 
-
-  // ----------------- TEXTOS SEGÚN ENFOQUE -----------------
-
+  // ===== Textos por enfoque =====
   String _focusLabel() {
     switch (_currentFocus) {
       case TarotFocus.love:
@@ -243,8 +244,7 @@ class _TarotScreenState extends State<TarotScreen> {
     }
   }
 
-  // ----------------- LÓGICA CARTAS -----------------
-
+  // ===== Lógica cartas =====
   List<TarotCard> _generarLectura(int cantidad) {
     final List<TarotCard> mazo = List.of(cartasTarot);
     mazo.shuffle(_random);
@@ -322,9 +322,9 @@ class _TarotScreenState extends State<TarotScreen> {
                 Text(
                   card.nombre,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 12,
+                  style: theme.textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: scheme.onSurface,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -343,18 +343,19 @@ class _TarotScreenState extends State<TarotScreen> {
     final lite = cards.asMap().entries.map((entry) {
       final i = entry.key;
       final c = entry.value;
-
       final posKey = _posKeyFor(spreadName, i);
 
       return TarotCardLite(
         name: c.nombre,
         imageAsset: c.imagePath,
-
-        // ✅ ahora cada área sale distinta y además cambia por posición
-        meaningGeneral: _composeMeaning(card: c, area: 'general', posKey: posKey, is3Cards: is3),
-        meaningLove:    _composeMeaning(card: c, area: 'amor',    posKey: posKey, is3Cards: is3),
-        meaningWork:    _composeMeaning(card: c, area: 'trabajo', posKey: posKey, is3Cards: is3),
-        meaningMoney:   _composeMeaning(card: c, area: 'dinero',  posKey: posKey, is3Cards: is3),
+        meaningGeneral:
+        _composeMeaning(card: c, area: 'general', posKey: posKey, is3Cards: is3),
+        meaningLove:
+        _composeMeaning(card: c, area: 'amor', posKey: posKey, is3Cards: is3),
+        meaningWork:
+        _composeMeaning(card: c, area: 'trabajo', posKey: posKey, is3Cards: is3),
+        meaningMoney:
+        _composeMeaning(card: c, area: 'dinero', posKey: posKey, is3Cards: is3),
       );
     }).toList();
 
@@ -371,9 +372,7 @@ class _TarotScreenState extends State<TarotScreen> {
     );
   }
 
-
-  // ----------------- LÓGICA JUEGO FICHAS -----------------
-
+  // ===== Juego fichas =====
   void _iniciarJuegoFichas() {
     const letras = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ';
     final random = Random();
@@ -402,16 +401,14 @@ class _TarotScreenState extends State<TarotScreen> {
     });
   }
 
-  Widget _buildJuegoFichasSection(ThemeData theme) {
-    const dorado = Color(0xFFFFD700);
-
+  Widget _buildJuegoFichasSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Juego de letras: elige 6 fichas',
           style: theme.textTheme.titleMedium?.copyWith(
-            color: Colors.white,
+            color: scheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -419,7 +416,7 @@ class _TarotScreenState extends State<TarotScreen> {
         Text(
           _labelJuegoFichas(),
           style: theme.textTheme.bodySmall?.copyWith(
-            color: Colors.white70,
+            color: scheme.onSurface.withOpacity(0.75),
             height: 1.3,
           ),
         ),
@@ -429,12 +426,12 @@ class _TarotScreenState extends State<TarotScreen> {
           child: ElevatedButton(
             onPressed: _iniciarJuegoFichas,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
-              foregroundColor: dorado,
+              backgroundColor: scheme.primary.withOpacity(0.18),
+              foregroundColor: scheme.onSurface,
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
-                side: const BorderSide(color: dorado),
+                side: BorderSide(color: scheme.primary.withOpacity(0.45)),
               ),
             ),
             child: Text(
@@ -458,32 +455,34 @@ class _TarotScreenState extends State<TarotScreen> {
                   width: 64,
                   height: 96,
                   decoration: BoxDecoration(
-                    color: Colors.black,
+                    color: scheme.surface,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: revelada ? dorado : Colors.white24,
+                      color: revelada
+                          ? scheme.primary.withOpacity(0.55)
+                          : scheme.outline.withOpacity(0.35),
                       width: 1.2,
                     ),
                     boxShadow: revelada
                         ? [
-                            BoxShadow(
-                              color: dorado.withOpacity(0.4),
-                              blurRadius: 8,
-                              spreadRadius: 1,
-                            ),
-                          ]
+                      BoxShadow(
+                        color: scheme.primary.withOpacity(0.25),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      ),
+                    ]
                         : [],
                   ),
                   alignment: Alignment.center,
                   child: revelada
                       ? Text(
-                          _fichasLetras[index],
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            color: dorado,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      : const Icon(Icons.star_border, color: dorado),
+                    _fichasLetras[index],
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                      : Icon(Icons.star_border, color: scheme.primary),
                 ),
               );
             }),
@@ -491,7 +490,9 @@ class _TarotScreenState extends State<TarotScreen> {
           const SizedBox(height: 12),
           Text(
             'Fichas reveladas: $_contadorFichasSeleccionadas / $_maxFichasSeleccionadas',
-            style: theme.textTheme.bodySmall?.copyWith(color: Colors.white70),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurface.withOpacity(0.75),
+            ),
           ),
         ],
       ],
@@ -502,28 +503,25 @@ class _TarotScreenState extends State<TarotScreen> {
   void initState() {
     super.initState();
     _readingType = _readingTypeFromFocus(_currentFocus);
+
     _loadCopyPacksEs()
         .then((data) {
-          setState(() {
-            _copyData = data;
-          });
+      setState(() {
+        _copyData = data;
+      });
 
-          final packs = data["packs"] as List;
-          final pack = _findPackOrFallback(packs, _readingType, _isPremium);
-          debugPrint("USING PACK (init): ${pack['id']}");
-        })
+      final packs = data["packs"] as List;
+      final pack = _findPackOrFallback(packs, _readingType, _isPremium);
+      debugPrint("USING PACK (init): ${pack['id']}");
+    })
         .catchError((e) {
-          debugPrint('ERROR loading copy packs: $e');
-        });
+      debugPrint('ERROR loading copy packs: $e');
+    });
   }
 
-  // ----------------- BUILD -----------------
-
+  // ===== BUILD =====
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    const dorado = Color(0xFFFFD700);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tarot del amor'),
@@ -546,25 +544,22 @@ class _TarotScreenState extends State<TarotScreen> {
             children: [
               // 🔁 Selector de enfoque
               Card(
-                color: Colors.black.withOpacity(0.45),
+                color: scheme.surface.withOpacity(0.85),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(color: dorado.withOpacity(0.4), width: 1.1),
+                  side: BorderSide(color: scheme.primary.withOpacity(0.4), width: 1.1),
                 ),
                 elevation: 8,
-                shadowColor: Colors.black.withOpacity(0.7),
+                shadowColor: Colors.black.withOpacity(0.6),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Enfoque de la lectura',
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: dorado,
+                          color: scheme.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -572,7 +567,7 @@ class _TarotScreenState extends State<TarotScreen> {
                       Text(
                         'Elige en qué área quieres que el tarot ponga más luz hoy.',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.white70,
+                          color: scheme.onSurface.withOpacity(0.75),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -585,23 +580,21 @@ class _TarotScreenState extends State<TarotScreen> {
                             onSelected: (_) {
                               setState(() {
                                 _currentFocus = TarotFocus.love;
-                                _readingType = _readingTypeFromFocus(
-                                  _currentFocus,
-                                );
+                                _readingType = _readingTypeFromFocus(_currentFocus);
                               });
                             },
-                            selectedColor: dorado.withOpacity(0.15),
+                            selectedColor: scheme.primary.withOpacity(0.18),
                             labelStyle: TextStyle(
                               color: _currentFocus == TarotFocus.love
-                                  ? dorado
-                                  : Colors.white70,
+                                  ? scheme.primary
+                                  : scheme.onSurface.withOpacity(0.75),
                             ),
-                            backgroundColor: Colors.black.withOpacity(0.6),
+                            backgroundColor: scheme.surface.withOpacity(0.75),
                             shape: StadiumBorder(
                               side: BorderSide(
                                 color: _currentFocus == TarotFocus.love
-                                    ? dorado
-                                    : Colors.white24,
+                                    ? scheme.primary.withOpacity(0.6)
+                                    : scheme.outline.withOpacity(0.35),
                               ),
                             ),
                           ),
@@ -614,19 +607,18 @@ class _TarotScreenState extends State<TarotScreen> {
                                 _readingType = _readingTypeFromFocus(_currentFocus);
                               });
                             },
-
-                            selectedColor: dorado.withOpacity(0.15),
+                            selectedColor: scheme.primary.withOpacity(0.18),
                             labelStyle: TextStyle(
                               color: _currentFocus == TarotFocus.work
-                                  ? dorado
-                                  : Colors.white70,
+                                  ? scheme.primary
+                                  : scheme.onSurface.withOpacity(0.75),
                             ),
-                            backgroundColor: Colors.black.withOpacity(0.6),
+                            backgroundColor: scheme.surface.withOpacity(0.75),
                             shape: StadiumBorder(
                               side: BorderSide(
                                 color: _currentFocus == TarotFocus.work
-                                    ? dorado
-                                    : Colors.white24,
+                                    ? scheme.primary.withOpacity(0.6)
+                                    : scheme.outline.withOpacity(0.35),
                               ),
                             ),
                           ),
@@ -636,23 +628,21 @@ class _TarotScreenState extends State<TarotScreen> {
                             onSelected: (_) {
                               setState(() {
                                 _currentFocus = TarotFocus.money;
-                                _readingType = _readingTypeFromFocus(
-                                  _currentFocus,
-                                );
+                                _readingType = _readingTypeFromFocus(_currentFocus);
                               });
                             },
-                            selectedColor: dorado.withOpacity(0.15),
+                            selectedColor: scheme.primary.withOpacity(0.18),
                             labelStyle: TextStyle(
                               color: _currentFocus == TarotFocus.money
-                                  ? dorado
-                                  : Colors.white70,
+                                  ? scheme.primary
+                                  : scheme.onSurface.withOpacity(0.75),
                             ),
-                            backgroundColor: Colors.black.withOpacity(0.6),
+                            backgroundColor: scheme.surface.withOpacity(0.75),
                             shape: StadiumBorder(
                               side: BorderSide(
                                 color: _currentFocus == TarotFocus.money
-                                    ? dorado
-                                    : Colors.white24,
+                                    ? scheme.primary.withOpacity(0.6)
+                                    : scheme.outline.withOpacity(0.35),
                               ),
                             ),
                           ),
@@ -662,7 +652,7 @@ class _TarotScreenState extends State<TarotScreen> {
                       Text(
                         'Enfoque actual: ${_focusLabel()}',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.white70,
+                          color: scheme.onSurface.withOpacity(0.7),
                           fontStyle: FontStyle.italic,
                         ),
                       ),
@@ -675,10 +665,10 @@ class _TarotScreenState extends State<TarotScreen> {
 
               // 🔮 3 cartas
               Card(
-                color: Colors.black.withOpacity(0.45),
+                color: scheme.surface.withOpacity(0.85),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(color: dorado.withOpacity(0.4), width: 1.1),
+                  side: BorderSide(color: scheme.primary.withOpacity(0.25), width: 1.0),
                 ),
                 elevation: 10,
                 shadowColor: Colors.black.withOpacity(0.7),
@@ -690,7 +680,7 @@ class _TarotScreenState extends State<TarotScreen> {
                       Text(
                         _title3Cards(),
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: dorado,
+                          color: scheme.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -698,7 +688,7 @@ class _TarotScreenState extends State<TarotScreen> {
                       Text(
                         _desc3Cards(),
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
+                          color: scheme.onSurface.withOpacity(0.9),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -716,11 +706,8 @@ class _TarotScreenState extends State<TarotScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-
-                      if (_lecturaTresCartas != null)
-                        _buildCardsRow(_lecturaTresCartas!),
-                      if (_lecturaTresCartas != null)
-                        const SizedBox(height: 12),
+                      if (_lecturaTresCartas != null) _buildCardsRow(_lecturaTresCartas!),
+                      if (_lecturaTresCartas != null) const SizedBox(height: 12),
                       if (_lecturaTresCartas != null)
                         SizedBox(
                           width: double.infinity,
@@ -742,10 +729,10 @@ class _TarotScreenState extends State<TarotScreen> {
 
               // 😍 6 cartas
               Card(
-                color: Colors.black.withOpacity(0.45),
+                color: scheme.surface.withOpacity(0.85),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(color: dorado.withOpacity(0.2), width: 1),
+                  side: BorderSide(color: scheme.primary.withOpacity(0.2), width: 1),
                 ),
                 elevation: 8,
                 shadowColor: Colors.black.withOpacity(0.6),
@@ -757,7 +744,7 @@ class _TarotScreenState extends State<TarotScreen> {
                       Text(
                         _title6Cards(),
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: dorado,
+                          color: scheme.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -765,7 +752,7 @@ class _TarotScreenState extends State<TarotScreen> {
                       Text(
                         _desc6Cards(),
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
+                          color: scheme.onSurface.withOpacity(0.9),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -777,11 +764,8 @@ class _TarotScreenState extends State<TarotScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-
-                      if (_lecturaSeisCartas != null)
-                        _buildCardsRow(_lecturaSeisCartas!),
-                      if (_lecturaSeisCartas != null)
-                        const SizedBox(height: 12),
+                      if (_lecturaSeisCartas != null) _buildCardsRow(_lecturaSeisCartas!),
+                      if (_lecturaSeisCartas != null) const SizedBox(height: 12),
                       if (_lecturaSeisCartas != null)
                         SizedBox(
                           width: double.infinity,
@@ -803,10 +787,10 @@ class _TarotScreenState extends State<TarotScreen> {
 
               // ❓ Sí / No
               Card(
-                color: Colors.black.withOpacity(0.45),
+                color: scheme.surface.withOpacity(0.85),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(color: dorado.withOpacity(0.2), width: 1),
+                  side: BorderSide(color: scheme.primary.withOpacity(0.2), width: 1),
                 ),
                 elevation: 8,
                 shadowColor: Colors.black.withOpacity(0.6),
@@ -818,7 +802,7 @@ class _TarotScreenState extends State<TarotScreen> {
                       Text(
                         'Pregunta de SÍ / NO',
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: dorado,
+                          color: scheme.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -826,7 +810,7 @@ class _TarotScreenState extends State<TarotScreen> {
                       Text(
                         'Formula una pregunta clara de sí o no. Respira profundo y deja que una carta responda por ti.',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
+                          color: scheme.onSurface.withOpacity(0.9),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -860,9 +844,9 @@ class _TarotScreenState extends State<TarotScreen> {
                                 children: [
                                   Text(
                                     _cartaSiNo!.nombre,
-                                    style: const TextStyle(
+                                    style: theme.textTheme.bodyMedium?.copyWith(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 14,
+                                      color: scheme.onSurface,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
@@ -870,7 +854,9 @@ class _TarotScreenState extends State<TarotScreen> {
                                     _cartaSiNo!.significado,
                                     maxLines: 4,
                                     overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.bodyMedium,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: scheme.onSurface.withOpacity(0.85),
+                                    ),
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
@@ -881,15 +867,15 @@ class _TarotScreenState extends State<TarotScreen> {
                                         : 'Energía: TAL VEZ',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: _colorResultadoSiNo(
-                                        _resultadoSiNo!,
-                                      ),
+                                      color: _colorResultadoSiNo(_resultadoSiNo!),
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     _textoResultadoSiNo(_resultadoSiNo!),
-                                    style: theme.textTheme.bodySmall,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: scheme.onSurface.withOpacity(0.8),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -906,16 +892,16 @@ class _TarotScreenState extends State<TarotScreen> {
 
               // 🎲 Juego de fichas
               Card(
-                color: Colors.black.withOpacity(0.45),
+                color: scheme.surface.withOpacity(0.85),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(color: dorado.withOpacity(0.2), width: 1),
+                  side: BorderSide(color: scheme.primary.withOpacity(0.2), width: 1),
                 ),
                 elevation: 8,
                 shadowColor: Colors.black.withOpacity(0.6),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: _buildJuegoFichasSection(theme),
+                  child: _buildJuegoFichasSection(),
                 ),
               ),
 
@@ -923,10 +909,10 @@ class _TarotScreenState extends State<TarotScreen> {
 
               // 🔗 Péndulo del amor
               Card(
-                color: Colors.black.withOpacity(0.45),
+                color: scheme.surface.withOpacity(0.85),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(color: dorado.withOpacity(0.2), width: 1),
+                  side: BorderSide(color: scheme.primary.withOpacity(0.2), width: 1),
                 ),
                 elevation: 8,
                 shadowColor: Colors.black.withOpacity(0.6),
@@ -938,16 +924,16 @@ class _TarotScreenState extends State<TarotScreen> {
                       Text(
                         'Péndulo del amor',
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: dorado,
+                          color: scheme.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Si quieres una respuesta más mágica, pregunta al péndulo y observa cómo se mueve: '
-                        'arriba/abajo (sí), lados (no), círculo (tal vez).',
+                            'arriba/abajo (sí), lados (no), círculo (tal vez).',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
+                          color: scheme.onSurface.withOpacity(0.9),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -956,9 +942,7 @@ class _TarotScreenState extends State<TarotScreen> {
                         child: OutlinedButton.icon(
                           onPressed: () {
                             Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const PendulumScreen(),
-                              ),
+                              MaterialPageRoute(builder: (_) => const PendulumScreen()),
                             );
                           },
                           icon: const Icon(Icons.podcasts),
@@ -974,10 +958,10 @@ class _TarotScreenState extends State<TarotScreen> {
 
               // 🎡 Dados mágicos & Ruleta & Flor
               Card(
-                color: Colors.black.withOpacity(0.45),
+                color: scheme.surface.withOpacity(0.85),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(color: dorado.withOpacity(0.2), width: 1),
+                  side: BorderSide(color: scheme.primary.withOpacity(0.2), width: 1),
                 ),
                 elevation: 8,
                 shadowColor: Colors.black.withOpacity(0.6),
@@ -989,7 +973,7 @@ class _TarotScreenState extends State<TarotScreen> {
                       Text(
                         'Dados, ruleta y flor del amor',
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: dorado,
+                          color: scheme.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -997,7 +981,7 @@ class _TarotScreenState extends State<TarotScreen> {
                       Text(
                         'Si quieres jugar aún más con la energía del día, explora los dados mágicos, la ruleta de mensajes y la flor del amor.',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
+                          color: scheme.onSurface.withOpacity(0.9),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -1006,9 +990,7 @@ class _TarotScreenState extends State<TarotScreen> {
                         child: OutlinedButton.icon(
                           onPressed: () {
                             Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const MysticToolsScreen(),
-                              ),
+                              MaterialPageRoute(builder: (_) => const MysticToolsScreen()),
                             );
                           },
                           icon: const Icon(Icons.casino),

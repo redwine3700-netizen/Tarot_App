@@ -4,11 +4,35 @@ import '../models/tarot_models.dart';
 import '../services/horoscope_api_service.dart';
 
 class HoroscopeScreen extends StatelessWidget {
-  const HoroscopeScreen({super.key});
+  final bool isPremium;
+
+  const HoroscopeScreen({
+    super.key,
+    required this.isPremium,
+  });
+
+
+  String _zodiacSymbol(String name) {
+    final n = name.toLowerCase().trim();
+    if (n.contains('aries')) return '♈';
+    if (n.contains('tauro')) return '♉';
+    if (n.contains('géminis') || n.contains('geminis')) return '♊';
+    if (n.contains('cáncer') || n.contains('cancer')) return '♋';
+    if (n.contains('leo')) return '♌';
+    if (n.contains('virgo')) return '♍';
+    if (n.contains('libra')) return '♎';
+    if (n.contains('escorpio') || n.contains('scorpio')) return '♏';
+    if (n.contains('sagitario')) return '♐';
+    if (n.contains('capricornio')) return '♑';
+    if (n.contains('acuario')) return '♒';
+    if (n.contains('piscis')) return '♓';
+    return '✦';
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -38,11 +62,12 @@ class HoroscopeScreen extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              // 👉 Más alto que antes para que no se desborde
               childAspectRatio: 0.75,
             ),
             itemBuilder: (context, index) {
               final signo = signos[index];
+              final symbol = _zodiacSymbol(signo.nombre);
+
               return InkWell(
                 onTap: () {
                   Navigator.of(context).push(
@@ -51,20 +76,20 @@ class HoroscopeScreen extends StatelessWidget {
                     ),
                   );
                 },
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
                 child: Ink(
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.45),
-                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.black.withOpacity(0.30),
+                    borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: const Color(0xFFFFD700).withOpacity(0.25),
-                      width: 1.1,
+                      color: scheme.primary.withOpacity(0.22),
+                      width: 1.2,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.5),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
+                        color: Colors.black.withOpacity(0.55),
+                        blurRadius: 10,
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
@@ -73,31 +98,65 @@ class HoroscopeScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          signo.nombre,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        // Título + símbolo (donde estaban tus ✨)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                signo.nombre,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: scheme.onSurface,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Container(
+                              width: 34,
+                              height: 34,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: scheme.primary.withOpacity(0.14),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: scheme.primary.withOpacity(0.35),
+                                  width: 1.0,
+                                ),
+                              ),
+                              child: Text(
+                                symbol,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: scheme.primary,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 4),
+
+                        const SizedBox(height: 6),
+
                         Text(
                           signo.fecha,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.white70,
+                            color: scheme.onSurface.withOpacity(0.70),
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 8),
-                        // Quitamos Spacer para no obligar a ocupar toda la altura
+
+                        const SizedBox(height: 10),
+
                         Expanded(
                           child: Text(
                             signo.resumenHoy,
-                            maxLines: 4,
+                            maxLines: 6,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.white.withOpacity(0.9),
-                              height: 1.2,
+                              color: scheme.onSurface.withOpacity(0.92),
+                              height: 1.25,
                             ),
                           ),
                         ),
@@ -139,17 +198,11 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
   }
 
   Future<void> _loadDaily() async {
-    setState(() {
-      _loadingDaily = true;
-    });
+    setState(() => _loadingDaily = true);
     try {
-      final data =
-      await HoroscopeApiService.fetchTodayForSign(widget.sign.nombre);
-      setState(() {
-        _daily = data;
-      });
+      final data = await HoroscopeApiService.fetchTodayForSign(widget.sign.nombre);
+      setState(() => _daily = data);
     } catch (_) {
-      // Fallback local
       setState(() {
         _daily = DailyHoroscope(
           description: widget.sign.resumenHoy,
@@ -159,23 +212,16 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
         );
       });
     } finally {
-      setState(() {
-        _loadingDaily = false;
-      });
+      setState(() => _loadingDaily = false);
     }
   }
 
   Future<void> _loadWeekly() async {
     if (_weekly != null || _loadingWeekly) return;
-    setState(() {
-      _loadingWeekly = true;
-    });
+    setState(() => _loadingWeekly = true);
     try {
-      final data =
-      await HoroscopeApiService.fetchWeeklyForSign(widget.sign.nombre);
-      setState(() {
-        _weekly = data;
-      });
+      final data = await HoroscopeApiService.fetchWeeklyForSign(widget.sign.nombre);
+      setState(() => _weekly = data);
     } catch (_) {
       setState(() {
         _weekly = DailyHoroscope(
@@ -187,23 +233,16 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
         );
       });
     } finally {
-      setState(() {
-        _loadingWeekly = false;
-      });
+      setState(() => _loadingWeekly = false);
     }
   }
 
   Future<void> _loadMonthly() async {
     if (_monthly != null || _loadingMonthly) return;
-    setState(() {
-      _loadingMonthly = true;
-    });
+    setState(() => _loadingMonthly = true);
     try {
-      final data =
-      await HoroscopeApiService.fetchMonthlyForSign(widget.sign.nombre);
-      setState(() {
-        _monthly = data;
-      });
+      final data = await HoroscopeApiService.fetchMonthlyForSign(widget.sign.nombre);
+      setState(() => _monthly = data);
     } catch (_) {
       setState(() {
         _monthly = DailyHoroscope(
@@ -215,173 +254,36 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
         );
       });
     } finally {
-      setState(() {
-        _loadingMonthly = false;
-      });
+      setState(() => _loadingMonthly = false);
     }
-  }
-
-  Widget _buildGeneralBlock(String title, DailyHoroscope? data, bool loading) {
-    final theme = Theme.of(context);
-
-    if (loading) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
-    if (data == null) {
-      return const Padding(
-        padding: EdgeInsets.all(16),
-        child: Text('No se pudo cargar la información en este momento.'),
-      );
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.45),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: const Color(0xFFFFD700).withOpacity(0.35),
-          width: 1.1,
-        ),
-      ),
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: const Color(0xFFFFD700),
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            data.description,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withOpacity(0.95),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Ánimo: ${data.mood}  •  Color: ${data.color}  •  Número: ${data.luckyNumber}',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: Colors.white70,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoveWorkHealth() {
-    final theme = Theme.of(context);
-    final sign = widget.sign;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.35),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: const Color(0xFFFFD700).withOpacity(0.25),
-        ),
-      ),
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Amor',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFFFFD700),
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              sign.amor,
-              style: theme.textTheme.bodyMedium,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Trabajo y dinero',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFFFFD700),
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              sign.dinero,
-              style: theme.textTheme.bodyMedium,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Salud y energía',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFFFFD700),
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              sign.salud,
-              style: theme.textTheme.bodyMedium,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final sign = widget.sign;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
     return DefaultTabController(
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(sign.nombre),
-          elevation: 0,
+          title: Text(widget.sign.nombre),
+          centerTitle: true,
           backgroundColor: Colors.transparent,
+          elevation: 0,
           bottom: TabBar(
-            indicatorColor: const Color(0xFFFFD700),
+            onTap: (i) {
+              if (i == 1) _loadWeekly();
+              if (i == 2) _loadMonthly();
+            },
+            indicatorColor: scheme.primary,
+            labelColor: scheme.onSurface,
+            unselectedLabelColor: scheme.onSurface.withOpacity(0.65),
             tabs: const [
               Tab(text: 'Hoy'),
               Tab(text: 'Semana'),
               Tab(text: 'Mes'),
             ],
-            onTap: (index) {
-              if (index == 1) {
-                _loadWeekly();   // 👉 carga horóscopo semanal
-              } else if (index == 2) {
-                _loadMonthly();  // 👉 carga horóscopo mensual
-              }
-            },
           ),
         ),
         extendBodyBehindAppBar: true,
@@ -400,43 +302,117 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
           child: SafeArea(
             child: TabBarView(
               children: [
-                // HOY
-                ListView(
-                  children: [
-                    _buildGeneralBlock(
-                      'Mensaje general de hoy',
-                      _daily,
-                      _loadingDaily,
-                    ),
-                    _buildLoveWorkHealth(),
-                  ],
+                _HoroscopeTab(
+                  loading: _loadingDaily,
+                  data: _daily,
+                  fallbackText: widget.sign.resumenHoy,
                 ),
-                // SEMANA
-                ListView(
-                  children: [
-                    _buildGeneralBlock(
-                      'Energía de la semana',
-                      _weekly,
-                      _loadingWeekly,
-                    ),
-                    _buildLoveWorkHealth(),
-                  ],
+                _HoroscopeTab(
+                  loading: _loadingWeekly,
+                  data: _weekly,
+                  fallbackText: widget.sign.resumenHoy,
                 ),
-                // MES
-                ListView(
-                  children: [
-                    _buildGeneralBlock(
-                      'Energía del mes',
-                      _monthly,
-                      _loadingMonthly,
-                    ),
-                    _buildLoveWorkHealth(),
-                  ],
+                _HoroscopeTab(
+                  loading: _loadingMonthly,
+                  data: _monthly,
+                  fallbackText: widget.sign.resumenHoy,
                 ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _HoroscopeTab extends StatelessWidget {
+  final bool loading;
+  final DailyHoroscope? data;
+  final String fallbackText;
+
+  const _HoroscopeTab({
+    required this.loading,
+    required this.data,
+    required this.fallbackText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    if (loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final text = data?.description ?? fallbackText;
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.28),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: scheme.primary.withOpacity(0.22),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.5),
+                blurRadius: 10,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              text,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                height: 1.35,
+                color: scheme.onSurface.withOpacity(0.92),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (data != null) ...[
+          _miniRow(context, 'Mood', data!.mood),
+          _miniRow(context, 'Color', data!.color),
+          _miniRow(context, 'Número', data!.luckyNumber),
+        ],
+      ],
+    );
+  }
+
+  Widget _miniRow(BuildContext context, String label, String value) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Row(
+        children: [
+          Text(
+            '$label:',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurface.withOpacity(0.70),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurface.withOpacity(0.92),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

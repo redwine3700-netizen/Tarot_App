@@ -43,20 +43,61 @@ class TarotReadingScreen extends StatefulWidget {
   State<TarotReadingScreen> createState() => _TarotReadingScreenState();
 }
 
-class _TarotReadingScreenState extends State<TarotReadingScreen> {
-  static const _gold = Color(0xFFFFD700);
-  static const _pink = Color(0xFFFF4FD8);
-  static const _bg1 = Color(0xFF12091D);
-  static const _bg2 = Color(0xFF1C1036);
-
+class _TarotReadingScreenState extends State<TarotReadingScreen>
+    with TickerProviderStateMixin {
   AccentStyle _accent = AccentStyle.dorado;
   bool _fullReading = true; // lectura completa ON por defecto
 
-  Color get _borderColor => _accent == AccentStyle.dorado ? _gold : _pink;
+  // ===== Paleta romántica suave (oscura + pasteles) =====
 
-  Color get _glowColor => _accent == AccentStyle.dorado ? _pink : _gold;
+  // Fondo general (plum night)
+  static const _bgBase1 = Color(0xFF1A1124);
+  static const _bgBase2 = Color(0xFF0F0B1A);
 
-  @override
+  // Panel glass (un poquito más claro)
+  static const _panelGold1 = Color(0xFF2A1B3D);
+  static const _panelGold2 = Color(0xFF1C1330);
+
+  // Panel rosado (tinte más romántico)
+  static const _panelRose1 = Color(0xFF2B1630);
+  static const _panelRose2 = Color(0xFF1B1023);
+
+  // Acentos pastel (por luminosidad se diferencian mejor)
+  // Dorado = champagne
+  static const _champFill   = Color(0xFFFFE7D0);
+  static const _champBorder = Color(0xFFEAC19C);
+
+  // Rosado = rose/lavender (más evidente)
+  static const _roseFill    = Color(0xFFFFD6E5);
+  static const _roseBorder  = Color(0xFFFF7FB3);
+
+  Color get _bg1 => _bgBase1;
+  Color get _bg2 => _bgBase2;
+
+  // Fondo de panel cambia con el toggle (se nota más)
+  List<Color> get _panelBg => _accent == AccentStyle.dorado
+      ? const [_panelGold1, _panelGold2]
+      : const [_panelRose1, _panelRose2];
+
+  // Acento activo
+  Color get _accentFill =>
+      _accent == AccentStyle.dorado ? _champFill : _roseFill;
+
+  Color get _accentBorder =>
+      _accent == AccentStyle.dorado ? _champBorder : _roseBorder;
+
+  // Bordes y “glow”
+  Color get _panelBorder => _accentBorder;
+  double get _panelBorderWidth => _accent == AccentStyle.dorado ? 1.6 : 2.2;
+
+  Color get _borderColor => _accentBorder;
+  Color get _glowColor => _accentFill;
+
+  // ✅ Compatibilidad: tu UI todavía usa _gold/_pink en botones y _colorForArea
+  Color get _gold => _accentFill;
+  Color get _pink => _accentBorder;
+
+
   @override
   Widget build(BuildContext context) {
     final isSix = widget.cards.length >= 6;
@@ -79,9 +120,9 @@ class _TarotReadingScreenState extends State<TarotReadingScreen> {
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [_bg2, _bg1],
+            colors: [_bg1, _bg2],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -98,186 +139,193 @@ class _TarotReadingScreenState extends State<TarotReadingScreen> {
                 selectedStyle: _accent,
                 onStyleChanged: (s) => setState(() => _accent = s),
                 fullReading: _fullReading,
-                onToggleFullReading: () {
-                  setState(() {
-                    _fullReading = !_fullReading;
-                  });
-                },
+                onToggleFullReading: () => setState(() => _fullReading = !_fullReading),
               ),
+
               const SizedBox(height: 14),
 
-              // Zona de cartas
               _GlassPanel(
-                gold: _borderColor,
-                pink: _glowColor,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isSix ? "Tus 6 cartas" : "Tus 3 cartas",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 18,
+                gold: _accentBorder,
+                pink: _accentFill,
+                bgColors: _panelBg,
+                borderColor: _panelBorder,
+                borderWidth: _panelBorderWidth,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isSix ? "Tus 6 cartas" : "Tus 3 cartas",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 18,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 12),
 
-                    if (!isSix)
-                      Row(
-                        children: List.generate(3, (i) {
-                          return Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.only(right: i == 2 ? 0 : 10),
-                              child: _CardTile(
-                                indexLabel: _labelFor3(i),
-                                card: widget.cards[i],
-                                gold: _borderColor,
-                                pink: _glowColor,
-                                onTap: () => _openCardDetails(
-                                  context,
-                                  widget.cards[i],
-                                  _labelFor3(i),
+                      if (!isSix)
+                        Row(
+                          children: List.generate(3, (i) {
+                            return Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.only(right: i == 2 ? 0 : 10),
+                                child: _CardTile(
+                                  indexLabel: _labelFor3(i),
+                                  card: widget.cards[i],
+                                  gold: _borderColor,
+                                  pink: _glowColor,
+                                  onTap: () => _openCardDetails(
+                                    context,
+                                    widget.cards[i],
+                                    _labelFor3(i),
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        }),
-                      )
-                    else
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: 6,
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          mainAxisSpacing: 10,
-                          crossAxisSpacing: 10,
-                          childAspectRatio: 0.64,
+                            );
+                          }),
+                        )
+                      else
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: 6,
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 10,
+                            crossAxisSpacing: 10,
+                            childAspectRatio: 0.64,
+                          ),
+                          itemBuilder: (ctx, i) {
+                            final label = _labelFor6(i, category: widget.initialArea);
+                            return _CardTile(
+                              indexLabel: label,
+                              card: widget.cards[i],
+                              gold: _borderColor,
+                              pink: _glowColor,
+                              onTap: () => _openCardDetails(
+                                context,
+                                widget.cards[i],
+                                label,
+                              ),
+                            );
+                          },
                         ),
-                        itemBuilder: (ctx, i) {
-                          final label = _labelFor6(i, category: widget.initialArea);
-                          return _CardTile(
-                            indexLabel: label,
-                            card: widget.cards[i],
-                            gold: _borderColor,
-                            pink: _glowColor,
-                            onTap: () => _openCardDetails(
-                              context,
-                              widget.cards[i],
-                              label,
-                            ),
-                          );
-                        },
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
 
               const SizedBox(height: 14),
 
-              // Interpretación
               _GlassPanel(
-                gold: _borderColor,
-                pink: _glowColor,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Interpretación",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 18,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Resumen (siempre)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: _colorForArea(widget.initialArea).withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: _colorForArea(widget.initialArea).withOpacity(0.35),
+                gold: _accentBorder,
+                pink: _accentFill,
+                bgColors: _panelBg,
+                borderColor: _panelBorder,
+                borderWidth: _panelBorderWidth,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Interpretación",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 18,
                         ),
                       ),
-                      child: Text(
-                        _summaryForArea(widget.initialArea),
-                        style: const TextStyle(height: 1.25),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
+                      const SizedBox(height: 10),
 
-                    // Microacción (siempre)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: _colorForArea(widget.initialArea).withOpacity(0.10),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: _colorForArea(widget.initialArea).withOpacity(0.35),
-                        ),
-                      ),
-                      child: Text(
-                        _microActionForArea(widget.initialArea),
-                        style: const TextStyle(height: 1.25),
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // ✅ AnimatedSize para que no “salte”
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 260),
-                      curve: Curves.easeOutCubic,
-                      alignment: Alignment.topCenter,
-                      child: _fullReading
-                          ? Column(
-                        children: [
-                          _Section(
-                            icon: _iconForArea(widget.initialArea),
-                            title: _titleForArea(widget.initialArea),
-                            text: _joinMeaningsForArea(
-                              widget.initialArea,
-                                  (c) => _meaningForArea(c, widget.initialArea),
-                            ),
-                            color: _colorForArea(widget.initialArea),
+                      // Resumen
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: _colorForArea(widget.initialArea).withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: _colorForArea(widget.initialArea).withOpacity(0.35),
                           ),
-                          const SizedBox(height: 12),
-                          ExpansionTile(
-                            title: const Text(
-                              "Ver otras áreas",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w900,
+                        ),
+                        child: Text(
+                          _summaryForArea(widget.initialArea),
+                          style: const TextStyle(height: 1.25),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Microacción
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: _colorForArea(widget.initialArea).withOpacity(0.10),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: _colorForArea(widget.initialArea).withOpacity(0.35),
+                          ),
+                        ),
+                        child: Text(
+                          _microActionForArea(widget.initialArea),
+                          style: const TextStyle(height: 1.25),
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // ✅ AnimatedSize (sin saltos)
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 260),
+                        curve: Curves.easeOutCubic,
+                        alignment: Alignment.topCenter,
+                        child: _fullReading
+                            ? Column(
+                          children: [
+                            _Section(
+                              icon: _iconForArea(widget.initialArea),
+                              title: _titleForArea(widget.initialArea),
+                              text: _joinMeaningsForArea(
+                                widget.initialArea,
+                                    (c) => _meaningForArea(c, widget.initialArea),
                               ),
+                              color: _colorForArea(widget.initialArea),
                             ),
-                            collapsedIconColor: Colors.white70,
-                            iconColor: Colors.white70,
-                            children: _otherAreas(widget.initialArea).map((area) {
-                              return Padding(
-                                padding: const EdgeInsets.only(top: 8),
-                                child: _Section(
-                                  icon: _iconForArea(area),
-                                  title: _titleForArea(area),
-                                  text: _joinMiniMeaningsForArea(
-                                    area,
-                                        (c) => _meaningForArea(c, area),
-                                  ),
-                                  color: _colorForArea(area),
+                            const SizedBox(height: 12),
+                            ExpansionTile(
+                              title: const Text(
+                                "Ver otras áreas",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
                                 ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      )
-                          : const SizedBox.shrink(),
-                    ),
-                  ],
+                              ),
+                              collapsedIconColor: Colors.white70,
+                              iconColor: Colors.white70,
+                              children: _otherAreas(widget.initialArea).map((area) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: _Section(
+                                    icon: _iconForArea(area),
+                                    title: _titleForArea(area),
+                                    text: _joinMiniMeaningsForArea(
+                                      area,
+                                          (c) => _meaningForArea(c, area),
+                                    ),
+                                    color: _colorForArea(area),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        )
+                            : const SizedBox.shrink(),
+                      ),
+                    ],
+                  ),
                 ),
               ),
 
@@ -325,16 +373,12 @@ class _TarotReadingScreenState extends State<TarotReadingScreen> {
     );
   }
 
+  // ====== Helpers (los tuyos, iguales, solo 1 ajuste de texto) ======
 
-  String _joinMiniMeaningsForArea(String area,
-      String Function(TarotCardLite c) pick,) {
+  String _joinMiniMeaningsForArea(String area, String Function(TarotCardLite c) pick) {
     final buff = StringBuffer();
     for (int i = 0; i < widget.cards.length; i++) {
-      final label = widget.cards.length >= 6
-          ? _labelFor6BySection(
-          i, area) // ✅ ahora sí: "Amor", "Trabajo", "Dinero", "Mensaje general"
-          : _labelFor3(i);
-
+      final label = widget.cards.length >= 6 ? _labelFor6BySection(i, area) : _labelFor3(i);
       final full = pick(widget.cards[i]);
       final mini = _firstSentence(full);
       buff.writeln("• $label — ${widget.cards[i].name}: $mini");
@@ -373,14 +417,10 @@ class _TarotReadingScreenState extends State<TarotReadingScreen> {
     }
   }
 
-  String _joinMeaningsForArea(String area,
-      String Function(TarotCardLite c) pick,) {
+  String _joinMeaningsForArea(String area, String Function(TarotCardLite c) pick) {
     final buff = StringBuffer();
     for (int i = 0; i < widget.cards.length; i++) {
-      final label = widget.cards.length >= 6
-          ? _labelFor6BySection(i, area)
-          : _labelFor3(i);
-
+      final label = widget.cards.length >= 6 ? _labelFor6BySection(i, area) : _labelFor3(i);
       final full = pick(widget.cards[i]);
       buff.writeln("• $label — ${widget.cards[i].name}: $full");
     }
@@ -415,7 +455,6 @@ class _TarotReadingScreenState extends State<TarotReadingScreen> {
     return "Microacción única: elige 1 cosa y hazla hoy, pequeña pero completa.";
   }
 
-
   IconData _iconForArea(String area) {
     switch (area) {
       case "amor":
@@ -442,20 +481,6 @@ class _TarotReadingScreenState extends State<TarotReadingScreen> {
     }
   }
 
-  String _joinMiniMeanings(String Function(TarotCardLite c) pick) {
-    final buff = StringBuffer();
-    for (int i = 0; i < widget.cards.length; i++) {
-      final label = widget.cards.length >= 6
-          ? _labelFor6BySection(i,
-          "${widget.title} ${widget.spreadName}") // <-- "Amor", "Trabajo", "Dinero", "Mensaje general"
-          : _labelFor3(i);
-      final full = pick(widget.cards[i]);
-      final mini = _firstSentence(full);
-      buff.writeln("• $label — ${widget.cards[i].name}: $mini");
-    }
-    return buff.toString().trim();
-  }
-
   String _firstSentence(String s) {
     final t = s.trim();
     if (t.isEmpty) return "";
@@ -475,29 +500,18 @@ class _TarotReadingScreenState extends State<TarotReadingScreen> {
     }
   }
 
-
   String _labelFor6(int i, {String? category}) {
-    // Fallback: si nadie pasa category, usamos el área/título que ya están en pantalla
     final ctx = (category ?? "${widget.initialArea} ${widget.title} ${widget.spreadName}")
         .toLowerCase()
         .trim();
 
-    // 0: Energía, 1: Tú, 2: (varía), 3: Bloqueo, 4: Consejo, 5: Resultado
     final thirdLabel = (ctx.contains("trabajo") || ctx.contains("work"))
-        ? "Entorno Laboral"
+        ? "Entorno laboral"
         : (ctx.contains("dinero") || ctx.contains("money"))
         ? "Factor externo"
-        : "Tú persona especial";
+        : "Tu persona especial";
 
-    final labels = [
-      "Energía",
-      "Tú",
-      thirdLabel,
-      "Bloqueo",
-      "Consejo",
-      "Resultado",
-    ];
-
+    final labels = ["Energía", "Tú", thirdLabel, "Bloqueo", "Consejo", "Resultado"];
     return labels[i.clamp(0, labels.length - 1)];
   }
 
@@ -505,41 +519,30 @@ class _TarotReadingScreenState extends State<TarotReadingScreen> {
     final s = section.toLowerCase();
 
     final thirdLabel = s.contains("amor")
-        ? "Tú persona especial"
+        ? "Tu persona especial"
         : (s.contains("trab") || s.contains("work"))
-        ? "Entorno laboral" // o "Actor clave"
+        ? "Entorno laboral"
         : (s.contains("din") || s.contains("money"))
         ? "Factor externo"
-        : "Influencia"; // Mensaje general
+        : "Influencia";
 
-    final labels = [
-      "Energía",
-      "Tú",
-      thirdLabel,
-      "Bloqueo",
-      "Consejo",
-      "Resultado",
-    ];
-
+    final labels = ["Energía", "Tú", thirdLabel, "Bloqueo", "Consejo", "Resultado"];
     return labels[i.clamp(0, labels.length - 1)];
   }
-
 
   Future<void> _copyReading(BuildContext context) async {
     final text = [
       widget.title,
       widget.spreadName,
-      if (widget.question != null &&
-          widget.question!.trim().isNotEmpty) "Pregunta: ${widget.question}",
+      if (widget.question != null && widget.question!.trim().isNotEmpty)
+        "Pregunta: ${widget.question}",
       "",
       "Resumen:",
       _summaryForArea(widget.initialArea),
       "",
       "Cartas:",
       ...List.generate(widget.cards.length, (i) {
-        final label = widget.cards.length >= 6
-            ? _labelFor6(i, category: widget.initialArea)
-            : _labelFor3(i);
+        final label = widget.cards.length >= 6 ? _labelFor6(i, category: widget.initialArea) : _labelFor3(i);
         return "• $label: ${widget.cards[i].name}";
       }),
       "",
@@ -565,91 +568,91 @@ class _TarotReadingScreenState extends State<TarotReadingScreen> {
     );
   }
 
-
-  void _openCardDetails(BuildContext context,
-      TarotCardLite card,
-      String posLabel,) {
+  void _openCardDetails(BuildContext context, TarotCardLite card, String posLabel) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (ctx) {
+        final bgColors = _panelBg;
+        final border = _borderColor;
+
         return Padding(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 18),
-          child: _GlassPanel(
-            gold: _borderColor,
-            pink: _glowColor,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        "$posLabel — ${card.name}",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      icon: const Icon(
-                        Icons.close_rounded,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                AspectRatio(
-                  aspectRatio: 0.70,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.asset(card.imageAsset, fit: BoxFit.cover),
-                        Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: _gold.withOpacity(0.65),
-                              width: 1.2,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: bgColors,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: border.withOpacity(0.55),
+                width: _panelBorderWidth,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(22),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              "$posLabel — ${card.name}",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 18,
+                              ),
                             ),
-                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          IconButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      AspectRatio(
+                        aspectRatio: 0.70,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(18),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.asset(card.imageAsset, fit: BoxFit.cover),
+                              Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: border.withOpacity(0.70),
+                                    width: _panelBorderWidth,
+                                  ),
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 12),
+                      _MiniMeaning(title: "General", text: card.meaningGeneral, color: border),
+                      const SizedBox(height: 8),
+                      _MiniMeaning(title: "Amor", text: card.meaningLove, color: border),
+                      const SizedBox(height: 8),
+                      _MiniMeaning(title: "Trabajo", text: card.meaningWork, color: border),
+                      const SizedBox(height: 8),
+                      _MiniMeaning(title: "Dinero", text: card.meaningMoney, color: border),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                _MiniMeaning(
-                  title: "General",
-                  text: card.meaningGeneral,
-                  color: _gold,
-                ),
-                const SizedBox(height: 8),
-                _MiniMeaning(
-                  title: "Amor",
-                  text: card.meaningLove,
-                  color: _pink,
-                ),
-                const SizedBox(height: 8),
-                _MiniMeaning(
-                  title: "Trabajo",
-                  text: card.meaningWork,
-                  color: Colors.white,
-                ),
-                const SizedBox(height: 8),
-                _MiniMeaning(
-                  title: "Dinero",
-                  text: card.meaningMoney,
-                  color: _gold,
-                ),
-              ],
+              ),
             ),
           ),
         );
@@ -657,6 +660,7 @@ class _TarotReadingScreenState extends State<TarotReadingScreen> {
     );
   }
 }
+
 
 class _HeaderCard extends StatelessWidget {
   final String spreadName;
@@ -684,9 +688,18 @@ class _HeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = selectedStyle == AccentStyle.dorado ? gold : pink;
+
+    final headerBgColors = selectedStyle == AccentStyle.dorado
+        ? const [Color(0xFF2A1B3D), Color(0xFF1C1330)]
+        : const [Color(0xFF2B1630), Color(0xFF1B1023)];
+
     return _GlassPanel(
       gold: gold,
       pink: pink,
+      bgColors: headerBgColors,
+      borderColor: accent,
+      borderWidth: 2.0,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -724,7 +737,7 @@ class _HeaderCard extends StatelessWidget {
               const SizedBox(width: 8),
               _Chip(
                 text: fullReading ? "Completa ✅" : "Completa",
-                color: Colors.white,
+                color: accent,
                 selected: fullReading,
                 onTap: onToggleFullReading,
               ),
@@ -735,6 +748,7 @@ class _HeaderCard extends StatelessWidget {
     );
   }
 }
+
 
 class _Chip extends StatelessWidget {
   final String text;
@@ -780,31 +794,89 @@ class _Chip extends StatelessWidget {
 
 
 class _GlassPanel extends StatelessWidget {
-  final Widget child;
   final Color gold;
   final Color pink;
+  final Widget child;
+
+  // NUEVO (opcionales)
+  final List<Color>? bgColors;
+  final Color? borderColor;
+  final double? borderWidth;
 
   const _GlassPanel({
-    required this.child,
+    super.key,
     required this.gold,
     required this.pink,
+    required this.child,
+    this.bgColors,
+    this.borderColor,
+    this.borderWidth,
   });
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    // Fondo pastel oscuro (femenino y suave)
+    final colors = bgColors ??
+        [
+          scheme.surface,
+          scheme.surfaceContainerHighest,
+        ];
+
+    final border = (borderColor ?? scheme.primary).withOpacity(0.55);
+
     return Container(
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: colors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(22),
-        color: Colors.white.withOpacity(0.06),
-        border: Border.all(color: gold.withOpacity(0.28), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: pink.withOpacity(0.10),
-            blurRadius: 26,
-            spreadRadius: 2,
-          ),
-        ],
+        border: Border.all(color: border, width: borderWidth ?? 1.2),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+class _AccentSheetShell extends StatelessWidget {
+  final AccentStyle accent;
+  final Widget child;
+
+  const _AccentSheetShell({
+    required this.accent,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+  final bgColors = accent == AccentStyle.dorado
+  ? const [Color(0xFF1C1036), Color(0xFF12091D)] // dorado (tu actual)
+      : const [Color(0xFF1A1026), Color(0xFF120B1C)]; // pastel violeta-rosa (suave)0916)];
+
+  final border = accent == AccentStyle.dorado
+  ? const Color(0xFFFFD700)
+      : const Color(0xFFFFB6D5); // rosado pastel real
+
+  return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: bgColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: border.withOpacity(0.55),
+          width: accent == AccentStyle.dorado ? 1.2 : 2.0, // extra visible
+        ),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(22),

@@ -176,8 +176,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const dorado = Color(0xFFFFD700);
-
+    final scheme = theme.colorScheme;
+    final dorado = scheme.primary;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Inicio'),
@@ -415,7 +415,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           onPressed: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => const HoroscopeScreen(),
+                                builder: (_) => const HoroscopeScreen(isPremium: false),
                               ),
                             );
                           },

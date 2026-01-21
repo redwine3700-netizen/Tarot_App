@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../models/tarot_models.dart';
 import '../services/horoscope_api_service.dart';
+import '../services/user_prefs.dart';
 
 class HoroscopeScreen extends StatelessWidget {
   final bool isPremium;
 
   const HoroscopeScreen({
     super.key,
-    required this.isPremium,
+    this.isPremium = false,
   });
-
 
   String _zodiacSymbol(String name) {
     final n = name.toLowerCase().trim();
@@ -98,7 +98,7 @@ class HoroscopeScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Título + símbolo (donde estaban tus ✨)
+                        // Título + símbolo (reemplaza las ✨)
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -191,10 +191,23 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
   bool _loadingWeekly = false;
   bool _loadingMonthly = false;
 
+  String _userName = '';
+
   @override
   void initState() {
     super.initState();
+    _loadUserName();
     _loadDaily();
+  }
+
+  Future<void> _loadUserName() async {
+    try {
+      final name = await UserPrefs.getUserName();
+      if (!mounted) return;
+      setState(() => _userName = UserPrefs.formatName(name));
+    } catch (_) {
+      // si algo falla, no pasa nada (solo no muestra nombre)
+    }
   }
 
   Future<void> _loadDaily() async {
@@ -306,16 +319,19 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
                   loading: _loadingDaily,
                   data: _daily,
                   fallbackText: widget.sign.resumenHoy,
+                  userName: _userName,
                 ),
                 _HoroscopeTab(
                   loading: _loadingWeekly,
                   data: _weekly,
                   fallbackText: widget.sign.resumenHoy,
+                  userName: _userName,
                 ),
                 _HoroscopeTab(
                   loading: _loadingMonthly,
                   data: _monthly,
                   fallbackText: widget.sign.resumenHoy,
+                  userName: _userName,
                 ),
               ],
             ),
@@ -330,11 +346,13 @@ class _HoroscopeTab extends StatelessWidget {
   final bool loading;
   final DailyHoroscope? data;
   final String fallbackText;
+  final String userName;
 
   const _HoroscopeTab({
     required this.loading,
     required this.data,
     required this.fallbackText,
+    required this.userName,
   });
 
   @override
@@ -346,7 +364,10 @@ class _HoroscopeTab extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final text = data?.description ?? fallbackText;
+    final raw = data?.description ?? fallbackText;
+    final cleanName = userName.trim();
+    final prefix = cleanName.isEmpty ? '' : '$cleanName, ';
+    final text = '$prefix$raw';
 
     return ListView(
       padding: const EdgeInsets.all(16),

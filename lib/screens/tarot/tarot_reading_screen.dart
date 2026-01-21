@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../services/user_prefs.dart';
+
 
 /// Modelo simple para que lo adaptes a tu TarotCard real.
 /// Si ya tienes clase TarotCard, puedes borrar esto y usar la tuya.
@@ -96,6 +98,21 @@ class _TarotReadingScreenState extends State<TarotReadingScreen>
   // ✅ Compatibilidad: tu UI todavía usa _gold/_pink en botones y _colorForArea
   Color get _gold => _accentFill;
   Color get _pink => _accentBorder;
+
+  String _userName = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    final name = await UserPrefs.getUserName();
+    if (!mounted) return;
+    setState(() => _userName = UserPrefs.formatName(name));
+  }
+
 
 
   @override
@@ -218,6 +235,52 @@ class _TarotReadingScreenState extends State<TarotReadingScreen>
               ),
 
               const SizedBox(height: 14),
+              _GlassPanel(
+                gold: _accentBorder,
+                pink: _accentFill,
+                bgColors: _panelBg,
+                borderColor: _panelBorder,
+                borderWidth: _panelBorderWidth,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Interpretación",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 18,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      Builder(
+                        builder: (context) {
+                          final prefix = _userName.isEmpty ? '' : '$_userName, ';
+                          // Usa el área inicial (general/amor/trabajo/dinero)
+                          final texto = _joinMeaningsForArea(
+                            widget.initialArea,
+                                (c) => _meaningForArea(c, widget.initialArea),
+                          );
+
+                          return Text(
+                            '$prefix$texto',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.88),
+                              height: 1.28,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+
+
 
               _GlassPanel(
                 gold: _accentBorder,
@@ -230,9 +293,9 @@ class _TarotReadingScreenState extends State<TarotReadingScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "Interpretación",
-                        style: TextStyle(
+                      Text(
+                        "Resumen",
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,
                           fontSize: 18,
@@ -240,7 +303,6 @@ class _TarotReadingScreenState extends State<TarotReadingScreen>
                       ),
                       const SizedBox(height: 10),
 
-                      // Resumen
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
@@ -251,14 +313,11 @@ class _TarotReadingScreenState extends State<TarotReadingScreen>
                             color: _colorForArea(widget.initialArea).withOpacity(0.35),
                           ),
                         ),
-                        child: Text(
-                          _summaryForArea(widget.initialArea),
-                          style: const TextStyle(height: 1.25),
-                        ),
+                        child: Text(_summaryForArea(widget.initialArea),
+                            style: const TextStyle(color: Colors.white, height: 1.25)),
                       ),
                       const SizedBox(height: 10),
 
-                      // Microacción
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
@@ -269,15 +328,12 @@ class _TarotReadingScreenState extends State<TarotReadingScreen>
                             color: _colorForArea(widget.initialArea).withOpacity(0.35),
                           ),
                         ),
-                        child: Text(
-                          _microActionForArea(widget.initialArea),
-                          style: const TextStyle(height: 1.25),
-                        ),
+                        child: Text(_microActionForArea(widget.initialArea),
+                            style: const TextStyle(color: Colors.white, height: 1.25)),
                       ),
 
                       const SizedBox(height: 12),
 
-                      // ✅ AnimatedSize (sin saltos)
                       AnimatedSize(
                         duration: const Duration(milliseconds: 260),
                         curve: Curves.easeOutCubic,
@@ -328,6 +384,7 @@ class _TarotReadingScreenState extends State<TarotReadingScreen>
                   ),
                 ),
               ),
+
 
               const SizedBox(height: 14),
 
@@ -859,7 +916,7 @@ class _AccentSheetShell extends StatelessWidget {
   Widget build(BuildContext context) {
   final bgColors = accent == AccentStyle.dorado
   ? const [Color(0xFF1C1036), Color(0xFF12091D)] // dorado (tu actual)
-      : const [Color(0xFF1A1026), Color(0xFF120B1C)]; // pastel violeta-rosa (suave)0916)];
+      : const [Color(0xFF1A1026), Color(0xFF120B1C)]; // pastel violeta-rosa (suave)
 
   final border = accent == AccentStyle.dorado
   ? const Color(0xFFFFD700)

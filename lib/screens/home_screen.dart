@@ -6,6 +6,8 @@ import '../models/tarot_models.dart';
 import 'tarot_screen.dart';
 import 'horoscope_screen.dart';
 import 'mystic_tools_screen.dart';
+import '../services/user_prefs.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

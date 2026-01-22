@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
@@ -5,9 +6,35 @@ import 'screens/home_screen.dart';
 import 'screens/tarot_screen.dart';
 import 'screens/horoscope_screen.dart';
 import 'screens/settings_screen.dart';
-import 'package:tarot_app/theme/app_theme.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint('FLUTTER ERROR: ${details.exception}');
+    debugPrintStack(stackTrace: details.stack);
+  };
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('DART ERROR: $error');
+    debugPrintStack(stackTrace: stack);
+    return true;
+  };
+
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Material(
+      color: Colors.black,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          details.toString(),
+          style: const TextStyle(color: Colors.white),
+        ),
+      ),
+    );
+  };
+
   runApp(const MyApp());
 }
 
@@ -19,9 +46,20 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Tarot & Horóscopos',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark(),
-      darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.dark,
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.black,
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFFFFD700),
+          secondary: Color(0xFFB39DDB),
+        ),
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+          ),
+        ),
+      ),
       home: const MainShell(),
     );
   }
@@ -37,60 +75,62 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _selectedIndex = 0;
 
-  // ⭐ por ahora para probar (después lo conectamos a compra)
-  bool get isPremium => true;
-
-  late final List<Widget> _pages = [
-    const HomeScreen(),
-    const TarotScreen(),
-    HoroscopeScreen(isPremium: isPremium),
-    const SettingsScreen(),
-  ];
-
   void _onItemTapped(int index) {
     setState(() => _selectedIndex = index);
   }
 
+  // Recibe eventos desde Home (botones, tools, etc.)
+  void _handleHomeNav(String route, Map<String, dynamic>? args) {
+    if (route == 'tarot/open') {
+      setState(() => _selectedIndex = 1); // tab Tarot
+
+      // 🔜 aquí luego conectamos el "bus" para abrir tirada 3/6 automáticamente
+      // (por ahora solo cambia de tab)
+    } else if (route == 'horoscope/open') {
+      setState(() => _selectedIndex = 2);
+    } else if (route == 'profile/open') {
+      setState(() => _selectedIndex = 3);
+    } else {
+      setState(() => _selectedIndex = 0);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final pages = [
+      HomeScreen(onNavigate: _handleHomeNav),
+      const TarotScreen(),
+      const HoroscopeScreen(),
+      const SettingsScreen(),
+    ];
 
     return Scaffold(
-      extendBody: true,
-      body: _pages[_selectedIndex],
-
-      // ✅ Glass bar: mantiene el tema y se ve pro sobre cualquier pantalla
-      bottomNavigationBar: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(18),
-          topRight: Radius.circular(18),
-        ),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            decoration: BoxDecoration(
-              color: scheme.surface.withOpacity(0.55),
-              border: Border(
-                top: BorderSide(color: scheme.outline.withOpacity(0.25)),
-              ),
-            ),
-            child: BottomNavigationBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              selectedItemColor: scheme.primary,
-              unselectedItemColor: scheme.onSurface.withOpacity(0.65),
-              currentIndex: _selectedIndex,
-              onTap: _onItemTapped,
-              type: BottomNavigationBarType.fixed,
-              items: const [
-                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-                BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: 'Tarot'),
-                BottomNavigationBarItem(icon: Icon(Icons.nightlight_round), label: 'Horóscopos'),
-                BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-              ],
-            ),
+      body: pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.black,
+        selectedItemColor: const Color(0xFFFFD700),
+        unselectedItemColor: Colors.white70,
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Inicio',
           ),
-        ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.auto_awesome),
+            label: 'Tarot',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.nightlight_round),
+            label: 'Horóscopos',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Perfil',
+          ),
+        ],
       ),
     );
   }

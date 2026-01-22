@@ -30,5 +30,6 @@ flutter:
     - assets/
     - assets/tarot/
     - assets/copy/copy_packs_es.json
+    - assets/copy/ux_deluxe_es.json
 
 

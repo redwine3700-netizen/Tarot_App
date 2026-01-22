@@ -27,43 +27,45 @@
     },
     "lente_area": {
       "amor": [
-        "En lo afectivo, esto habla de apertura emocional.",
-        "En vínculos, marca cómo das y cómo recibes.",
-        "En amor, la clave está en la honestidad.",
-        "A nivel emocional, pide cuidado y presencia.",
-        "En relaciones, señala un aprendizaje sensible."
+        "Apertura emocional y honestidad.",
+        "Equilibrio entre dar y recibir.",
+        "Coherencia: hechos antes que señales.",
+        "Cuidado, presencia y calma.",
+        "Un aprendizaje sensible en tus vínculos."
       ],
+
       "trabajo": [
-        "En lo profesional, marca estrategia y límites sanos.",
-        "En trabajo, habla de foco y prioridades.",
-        "En tu carrera, señala una oportunidad concreta.",
-        "A nivel laboral, pide orden y claridad.",
-        "En proyectos, indica un ajuste necesario."
+        "Marca estrategia y límites sanos.",
+        "Habla de foco y prioridades.",
+        "Señala una oportunidad concreta.",
+        "Pide orden y claridad.",
+        "Indica un ajuste necesario."
       ],
       "dinero": [
-        "En dinero, pide orden y decisiones consistentes.",
-        "En economía, marca hábitos más que suerte.",
-        "En abundancia, señala dónde se va tu energía.",
-        "A nivel financiero, pide atención consciente.",
-        "En recursos, sugiere un cambio práctico."
+        "Pide orden y decisiones consistentes.",
+        "Marca hábitos más que suerte.",
+        "Señala dónde se va tu energía.",
+        "Pide atención consciente.",
+        "Sugiere un cambio práctico."
       ],
       "general": [
-        "En tu camino, esto ilumina lo esencial.",
-        "En tu energía, muestra lo que pide equilibrio.",
-        "En tu día a día, devuelve dirección.",
-        "A nivel general, señala un punto clave.",
-        "En tu proceso, marca una toma de conciencia."
+        "Esto ilumina lo esencial.",
+        "Muestra lo que pide equilibrio.",
+        "Devuelve dirección.",
+        "Señala un punto clave.",
+        "Marca una toma de conciencia."
       ]
     },
     "microacciones": [
-      "Microacción: escribe una decisión y hazla hoy.",
-      "Microacción: ordena una cosa pequeña y mantenla 7 días.",
-      "Microacción: pon un límite concreto esta semana.",
-      "Microacción: di una verdad simple, sin justificarte.",
-      "Microacción: elige una acción mínima y cúmplela.",
-      "Microacción: descarta una distracción importante.",
-      "Microacción: prioriza una sola cosa hoy."
+      "Escribe una decisión y hazla hoy.",
+      "Ordena una cosa pequeña y sosténla 7 días.",
+      "Pon un límite concreto esta semana.",
+      "Di una verdad simple, sin justificarte.",
+      "Elige una acción mínima y cúmplela.",
+      "Descarta una distracción importante.",
+      "Prioriza una sola cosa hoy."
     ],
+
     "significado_corto": {
       "EL_SOL": [
         "Claridad, vitalidad y verdad a la vista.",
@@ -352,7 +354,7 @@
         "cierre": [
           {
             "id": "GP_C_01",
-            "text": "Microacción: escribe una decisión y hazla hoy.",
+            "text": "Escribe una decisión y hazla hoy.",
             "weight": 3
           },
           {

@@ -1,0 +1,73 @@
+{
+"home": {
+"hero": {
+"title": "Bienvenido a tu ritual",
+"subtitle": "Elige una herramienta y déjate guiar."
+},
+"energy": {
+"label": "Energía",
+"values": ["Suave", "Intensa", "Clara", "Misteriosa", "Magnética"]
+},
+"actions": [
+{ "id": "tarot_quick", "title": "Tarot rápido", "subtitle": "Una carta para tu día" },
+{ "id": "tarot_3", "title": "Tirada 3 cartas", "subtitle": "Pasado • Presente • Futuro" },
+{ "id": "tarot_6", "title": "Tirada 6 cartas", "subtitle": "Profundiza con detalle" }
+],
+"tools": {
+"title": "Herramientas místicas",
+"items": [
+{ "id": "roulette", "title": "Ruleta", "subtitle": "Gira y recibe un mensaje" },
+{ "id": "dice", "title": "Dados", "subtitle": "Señales rápidas" },
+{ "id": "pendulum", "title": "Péndulo", "subtitle": "Sí / No con intención" },
+{ "id": "tombola", "title": "Tómbola", "subtitle": "Números de la suerte" }
+]
+},
+"for_you": {
+"title": "Para ti",
+"lines": [
+"Hoy tu intuición sabe más de lo que crees.",
+"No corras: lo correcto llega cuando respiras.",
+"Una decisión pequeña puede cambiarlo todo."
+]
+}
+},
+
+"tarot_flow": {
+"pre": {
+"title": "Un momento para ti",
+"subtitle": "Respira… y piensa en tu pregunta.",
+"cta_shuffle": "Barajar",
+"cta_continue": "Continuar"
+},
+"reveal": {
+"title": "Revela con calma",
+"lines": [
+"Déjala hablar.",
+"Mira el detalle que más te llama.",
+"Qué emoción aparece primero."
+],
+"cta_next": "Siguiente carta",
+"cta_finish": "Ver lectura"
+},
+"result": {
+"title": "Mensaje del día",
+"subtitle": "Léelo lento. Quédate con una frase.",
+"cta_save": "Guardar",
+"cta_share": "Compartir",
+"cta_again": "Otra lectura"
+}
+},
+
+"premium": {
+"title": "Desbloquea tu experiencia deluxe",
+"subtitle": "Más profundidad, más ritual, cero interrupciones.",
+"benefits": [
+{ "title": "Lecturas extendidas", "desc": "Interpretación más profunda y consejos prácticos." },
+{ "title": "Historial privado", "desc": "Guarda lecturas con fecha y favoritos." },
+{ "title": "Modo ritual", "desc": "Animaciones completas + vibración/sonido suave (opcional)." },
+{ "title": "Sin anuncios", "desc": "Experiencia limpia y fluida." }
+],
+"cta_try": "Probar Premium",
+"cta_plans": "Ver planes"
+}
+}

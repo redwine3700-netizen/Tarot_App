@@ -2,6 +2,10 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'mystic_tools/tabs/tombola_tab.dart';
+import 'pendulum_screen.dart';
+import 'dice_screen.dart';
+import 'roulette_screen.dart';
+import 'horoscope_screen.dart';
 
 
 
@@ -88,7 +92,11 @@ Widget _resultPill(
 // ======================= SCREEN =======================
 
 class MysticToolsScreen extends StatelessWidget {
-  const MysticToolsScreen({super.key});
+  final int initialTab; // 0..3
+
+  const MysticToolsScreen({super.key, this.initialTab = 0});
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +104,7 @@ class MysticToolsScreen extends StatelessWidget {
 
     return DefaultTabController(
       length: 4,
+      initialIndex: initialTab.clamp(0, 3),
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -145,6 +154,7 @@ class MysticToolsScreen extends StatelessWidget {
     );
   }
 }
+
 
 // ======================= DADOS =======================
 

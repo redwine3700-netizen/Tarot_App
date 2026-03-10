@@ -1,3 +1,4 @@
+import '../models/horoscope_models.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 

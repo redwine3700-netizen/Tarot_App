@@ -14,7 +14,8 @@ dependencies:
 
   http: ^1.2.0
   cupertino_icons: ^1.0.8
-  shared_preferences: ^2.2.0
+  audioplayers: ^5.2.1
+  shared_preferences: ^2.2.3
   sensors_plus: ^5.0.0
 
 dev_dependencies:
@@ -24,12 +25,8 @@ dev_dependencies:
   flutter_lints: ^5.0.0
 
 flutter:
-
   uses-material-design: true
   assets:
-    - assets/
-    - assets/tarot/
-    - assets/copy/copy_packs_es.json
-    - assets/copy/ux_deluxe_es.json
-
-
+    - assets/tarot/cards/
+    - assets/copy/
+    - assets/sounds/

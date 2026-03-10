@@ -1,25 +1,33 @@
-enum TarotMode { love, work, money }
+// lib/state/tarot_mode.dart
+
+enum TarotMode { general, love, work, money }
 
 extension TarotModeX on TarotMode {
-  String get key {
+  /// Para mapear a tu "area" usada en los banks/copy.
+  String get areaKey {
     switch (this) {
+      case TarotMode.general:
+        return "general";
       case TarotMode.love:
-        return 'love';
+        return "amor";
       case TarotMode.work:
-        return 'work';
+        return "trabajo";
       case TarotMode.money:
-        return 'money';
+        return "dinero";
     }
   }
 
-  String get label {
+  /// Título humano para UI
+  String get title {
     switch (this) {
+      case TarotMode.general:
+        return "General";
       case TarotMode.love:
-        return 'Amor';
+        return "Amor";
       case TarotMode.work:
-        return 'Trabajo';
+        return "Trabajo";
       case TarotMode.money:
-        return 'Dinero';
+        return "Dinero";
     }
   }
 }

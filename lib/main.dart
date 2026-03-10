@@ -1,27 +1,32 @@
 import 'dart:async';
-import 'dart:ui';
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:flutter/material.dart';
 
 import 'screens/home_screen.dart';
 import 'screens/tarot_screen.dart';
-import 'screens/horoscope_screen.dart';
+// import 'screens/horoscope_screen.dart';
 import 'screens/settings_screen.dart';
+import 'services/copy_loader.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // ✅ Errores Flutter (UI)
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
     debugPrint('FLUTTER ERROR: ${details.exception}');
     debugPrintStack(stackTrace: details.stack);
   };
 
-  PlatformDispatcher.instance.onError = (error, stack) {
+  // ✅ Errores Dart no atrapados
+  PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
     debugPrint('DART ERROR: $error');
     debugPrintStack(stackTrace: stack);
     return true;
   };
 
+  // ✅ Widget de error visible (opcional, pero útil en debug)
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return Material(
       color: Colors.black,
@@ -35,6 +40,10 @@ void main() {
     );
   };
 
+  // ✅ Carga JSON (packs + meta + ux)
+  await CopyLoader.instance.loadAll();
+
+  // ✅ Solo un runApp
   runApp(const MyApp());
 }
 
@@ -83,9 +92,6 @@ class _MainShellState extends State<MainShell> {
   void _handleHomeNav(String route, Map<String, dynamic>? args) {
     if (route == 'tarot/open') {
       setState(() => _selectedIndex = 1); // tab Tarot
-
-      // 🔜 aquí luego conectamos el "bus" para abrir tirada 3/6 automáticamente
-      // (por ahora solo cambia de tab)
     } else if (route == 'horoscope/open') {
       setState(() => _selectedIndex = 2);
     } else if (route == 'profile/open') {
@@ -100,7 +106,7 @@ class _MainShellState extends State<MainShell> {
     final pages = [
       HomeScreen(onNavigate: _handleHomeNav),
       const TarotScreen(),
-      const HoroscopeScreen(),
+      // const HoroscopeScreen(),
       const SettingsScreen(),
     ];
 
@@ -121,10 +127,6 @@ class _MainShellState extends State<MainShell> {
           BottomNavigationBarItem(
             icon: Icon(Icons.auto_awesome),
             label: 'Tarot',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.nightlight_round),
-            label: 'Horóscopos',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),

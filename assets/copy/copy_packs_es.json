@@ -33,7 +33,6 @@
         "Cuidado, presencia y calma.",
         "Un aprendizaje sensible en tus vínculos."
       ],
-
       "trabajo": [
         "Marca estrategia y límites sanos.",
         "Habla de foco y prioridades.",
@@ -65,7 +64,6 @@
       "Descarta una distracción importante.",
       "Prioriza una sola cosa hoy."
     ],
-
     "significado_corto": {
       "EL_SOL": [
         "Claridad, vitalidad y verdad a la vista.",
@@ -110,1101 +108,6 @@
     }
   },
   "packs": [
-    {
-      "id": "es_general_free",
-      "tier": "free",
-      "readingType": "general",
-      "rules": {
-        "assemblyOrder": [
-          "apertura",
-          "marco",
-          "nucleo",
-          "cierre"
-        ],
-        "maxChars": 430,
-        "noRepeat": {
-          "cooldownSessions": 2
-        }
-      },
-      "three_cards": {
-        "pasado": [
-          {
-            "id": "3C_P_01",
-            "text": "Esto viene de una experiencia reciente que todavía influye.",
-            "weight": 3
-          },
-          {
-            "id": "3C_P_02",
-            "text": "Aquí hay una huella que dejó una lección importante.",
-            "weight": 2
-          },
-          {
-            "id": "3C_P_03",
-            "text": "Tu historia previa marca el punto de partida de hoy.",
-            "weight": 2
-          }
-        ],
-        "presente": [
-          {
-            "id": "3C_PR_01",
-            "text": "Ahora se ve con claridad lo que estás sosteniendo.",
-            "weight": 3
-          },
-          {
-            "id": "3C_PR_02",
-            "text": "El presente te pide foco: menos ruido, más verdad.",
-            "weight": 2
-          },
-          {
-            "id": "3C_PR_03",
-            "text": "Lo esencial hoy es decidir desde calma, no desde prisa.",
-            "weight": 2
-          }
-        ],
-        "futuro": [
-          {
-            "id": "3C_F_01",
-            "text": "Si mantienes este rumbo, esto tiende a manifestarse.",
-            "weight": 3
-          },
-          {
-            "id": "3C_F_02",
-            "text": "La tendencia apunta a un ajuste que mejora tu camino.",
-            "weight": 2
-          },
-          {
-            "id": "3C_F_03",
-            "text": "Lo que viene no está escrito: se define con tu constancia.",
-            "weight": 2
-          }
-        ],
-        "microaccion": [
-          {
-            "id": "3C_M_01",
-            "text": "Prioriza una sola cosa hoy.",
-            "weight": 3
-          },
-          {
-            "id": "3C_M_02",
-            "text": "Elige una acción mínima y cúmplela.",
-            "weight": 2
-          },
-          {
-            "id": "3C_M_03",
-            "text": "Corta una distracción importante por 24 horas.",
-            "weight": 2
-          }
-        ]
-      },
-      "six_cards": {
-        "energia": [
-          {
-            "id": "G6_EN_01",
-            "text": "La dinámica se mueve en oleadas: acercamiento, pausa y vuelta a empezar.",
-            "weight": 3
-          },
-          {
-            "id": "G6_EN_02",
-            "text": "Hay magnetismo, pero la clave es la coherencia, no la intensidad.",
-            "weight": 2
-          }
-        ],
-        "tu": [
-          {
-            "id": "G6_TU_01",
-            "text": "Tu energía hoy pide claridad interna: menos impulso, más intención.",
-            "weight": 3
-          },
-          {
-            "id": "G6_TU_02",
-            "text": "Estás en un punto donde tu intuición está activa, pero necesita calma para escucharse.",
-            "weight": 2
-          }
-        ],
-        "otra_persona": [
-          {
-            "id": "G6_OP_01",
-            "text": "La otra energía se percibe reservada: observa más de lo que dice.",
-            "weight": 3
-          },
-          {
-            "id": "G6_OP_02",
-            "text": "Hay interés o atención, pero con un ritmo propio y pausado.",
-            "weight": 2
-          }
-        ],
-        "bloqueo": [
-          {
-            "id": "G6_BL_01",
-            "text": "El bloqueo principal es suponer: imaginar en vez de confirmar.",
-            "weight": 3
-          },
-          {
-            "id": "G6_BL_02",
-            "text": "La prisa puede nublar el mensaje; lo urgente no siempre es lo importante.",
-            "weight": 2
-          }
-        ],
-        "consejo": [
-          {
-            "id": "G6_CO_01",
-            "text": "Vuelve a lo simple: una decisión clara y un paso pequeño, hoy.",
-            "weight": 3
-          },
-          {
-            "id": "G6_CO_02",
-            "text": "Haz una pregunta concreta antes de interpretar señales.",
-            "weight": 2
-          }
-        ],
-        "resultado": [
-          {
-            "id": "G6_RE_01",
-            "text": "Si sostienes esa claridad, el camino se ordena y se siente más liviano.",
-            "weight": 3
-          },
-          {
-            "id": "G6_RE_02",
-            "text": "La tendencia es positiva si mantienes constancia y límites sanos.",
-            "weight": 2
-          }
-        ],
-        "microaccion": [
-          {
-            "id": "G6_M_01",
-            "text": "Elige una sola acción concreta hoy y complétala antes de la noche.",
-            "weight": 3
-          },
-          {
-            "id": "G6_M_02",
-            "text": "Quita una distracción importante por 24 horas.",
-            "weight": 2
-          }
-        ]
-      },
-      "blocks": {
-        "apertura": [
-          {
-            "id": "GP_A_01",
-            "text": "Esta lectura baja el ruido y sube la verdad.",
-            "weight": 3
-          },
-          {
-            "id": "GP_A_02",
-            "text": "Respira: hoy tu intuición habla con precisión.",
-            "weight": 3
-          },
-          {
-            "id": "GP_A_03",
-            "text": "Tu camino se entiende mejor cuando no te apuras.",
-            "weight": 2
-          }
-        ],
-        "marco": [
-          {
-            "id": "GP_M_01",
-            "text": "En tu energía más profunda…",
-            "weight": 3
-          },
-          {
-            "id": "GP_M_02",
-            "text": "En lo que hoy pide madurez…",
-            "weight": 2
-          },
-          {
-            "id": "GP_M_03",
-            "text": "En lo que tu alma ya decidió…",
-            "weight": 2
-          }
-        ],
-        "nucleo": [
-          {
-            "id": "GP_N_01",
-            "text": "la señal principal es orden: menos impulso, más intención.",
-            "weight": 3
-          },
-          {
-            "id": "GP_N_02",
-            "text": "hay un aprendizaje que se repite: míralo sin juicio.",
-            "weight": 2
-          },
-          {
-            "id": "GP_N_03",
-            "text": "si haces un ajuste hoy, el resto se acomoda.",
-            "weight": 2
-          }
-        ],
-        "profundizacion": [
-          {
-            "id": "GP_P_01",
-            "text": "Si esto te da alivio al leerlo, probablemente es verdad.",
-            "weight": 3
-          },
-          {
-            "id": "GP_P_02",
-            "text": "No busques perfección: busca coherencia contigo.",
-            "weight": 2
-          },
-          {
-            "id": "GP_P_03",
-            "text": "Lo simple puede ser tu decisión más sabia.",
-            "weight": 2
-          }
-        ],
-        "cierre": [
-          {
-            "id": "GP_C_01",
-            "text": "Escribe una decisión y hazla hoy.",
-            "weight": 3
-          },
-          {
-            "id": "GP_C_02",
-            "text": "La lectura se cierra; tu enfoque continúa.",
-            "weight": 2
-          },
-          {
-            "id": "GP_C_03",
-            "text": "Vuelve cuando necesites precisión, no ansiedad.",
-            "weight": 1
-          }
-        ]
-      }
-    },
-    {
-      "id": "es_general_premium",
-      "tier": "premium",
-      "readingType": "general",
-      "rules": {
-        "assemblyOrder": [
-          "apertura",
-          "marco",
-          "nucleo",
-          "profundizacion",
-          "cierre"
-        ],
-        "maxChars": 540,
-        "noRepeat": {
-          "cooldownSessions": 3
-        }
-      },
-      "three_cards": {
-        "pasado": [
-          {
-            "id": "3C_P_01",
-            "text": "Esto viene de una experiencia reciente que todavía influye.",
-            "weight": 3
-          },
-          {
-            "id": "3C_P_02",
-            "text": "Aquí hay una huella que dejó una lección importante.",
-            "weight": 2
-          },
-          {
-            "id": "3C_P_03",
-            "text": "Tu historia previa marca el punto de partida de hoy.",
-            "weight": 2
-          }
-        ],
-        "presente": [
-          {
-            "id": "3C_PR_01",
-            "text": "Ahora se ve con claridad lo que estás sosteniendo.",
-            "weight": 3
-          },
-          {
-            "id": "3C_PR_02",
-            "text": "El presente te pide foco: menos ruido, más verdad.",
-            "weight": 2
-          },
-          {
-            "id": "3C_PR_03",
-            "text": "Lo esencial hoy es decidir desde calma, no desde prisa.",
-            "weight": 2
-          }
-        ],
-        "futuro": [
-          {
-            "id": "3C_F_01",
-            "text": "Si mantienes este rumbo, esto tiende a manifestarse.",
-            "weight": 3
-          },
-          {
-            "id": "3C_F_02",
-            "text": "La tendencia apunta a un ajuste que mejora tu camino.",
-            "weight": 2
-          },
-          {
-            "id": "3C_F_03",
-            "text": "Lo que viene no está escrito: se define con tu constancia.",
-            "weight": 2
-          }
-        ],
-        "microaccion": [
-          {
-            "id": "3C_M_01",
-            "text": "Prioriza una sola cosa hoy.",
-            "weight": 3
-          },
-          {
-            "id": "3C_M_02",
-            "text": "Elige una acción mínima y cúmplela.",
-            "weight": 2
-          },
-          {
-            "id": "3C_M_03",
-            "text": "Corta una distracción importante por 24 horas.",
-            "weight": 2
-          }
-        ]
-      },
-      "six_cards": {
-        "energia": [
-          {
-            "id": "G6_EN_01",
-            "text": "La dinámica se mueve en oleadas: acercamiento, pausa y vuelta a empezar.",
-            "weight": 3
-          },
-          {
-            "id": "G6_EN_02",
-            "text": "Hay magnetismo, pero la clave es la coherencia, no la intensidad.",
-            "weight": 2
-          }
-        ],
-        "tu": [
-          {
-            "id": "G6_TU_01",
-            "text": "Tu energía hoy pide claridad interna: menos impulso, más intención.",
-            "weight": 3
-          },
-          {
-            "id": "G6_TU_02",
-            "text": "Estás en un punto donde tu intuición está activa, pero necesita calma para escucharse.",
-            "weight": 2
-          }
-        ],
-        "otra_persona": [
-          {
-            "id": "G6_OP_01",
-            "text": "La otra energía se percibe reservada: observa más de lo que dice.",
-            "weight": 3
-          },
-          {
-            "id": "G6_OP_02",
-            "text": "Hay interés o atención, pero con un ritmo propio y pausado.",
-            "weight": 2
-          }
-        ],
-        "bloqueo": [
-          {
-            "id": "G6_BL_01",
-            "text": "El bloqueo principal es suponer: imaginar en vez de confirmar.",
-            "weight": 3
-          },
-          {
-            "id": "G6_BL_02",
-            "text": "La prisa puede nublar el mensaje; lo urgente no siempre es lo importante.",
-            "weight": 2
-          }
-        ],
-        "consejo": [
-          {
-            "id": "G6_CO_01",
-            "text": "Vuelve a lo simple: una decisión clara y un paso pequeño, hoy.",
-            "weight": 3
-          },
-          {
-            "id": "G6_CO_02",
-            "text": "Haz una pregunta concreta antes de interpretar señales.",
-            "weight": 2
-          }
-        ],
-        "resultado": [
-          {
-            "id": "G6_RE_01",
-            "text": "Si sostienes esa claridad, el camino se ordena y se siente más liviano.",
-            "weight": 3
-          },
-          {
-            "id": "G6_RE_02",
-            "text": "La tendencia es positiva si mantienes constancia y límites sanos.",
-            "weight": 2
-          }
-        ],
-        "microaccion": [
-          {
-            "id": "G6_M_01",
-            "text": "Elige una sola acción concreta hoy y complétala antes de la noche.",
-            "weight": 3
-          },
-          {
-            "id": "G6_M_02",
-            "text": "Quita una distracción importante por 24 horas.",
-            "weight": 2
-          }
-        ]
-      },
-      "blocks": {
-        "apertura": [
-          {
-            "id": "GP_A_01",
-            "text": "Esta lectura baja el ruido y sube la verdad.",
-            "weight": 3
-          },
-          {
-            "id": "GP_A_02",
-            "text": "Respira: hoy tu intuición habla con precisión.",
-            "weight": 3
-          },
-          {
-            "id": "GP_A_03",
-            "text": "Tu camino se entiende mejor cuando no te apuras.",
-            "weight": 2
-          }
-        ],
-        "marco": [
-          {
-            "id": "GP_M_01",
-            "text": "En tu energía más profunda…",
-            "weight": 3
-          },
-          {
-            "id": "GP_M_02",
-            "text": "En lo que hoy pide madurez…",
-            "weight": 2
-          },
-          {
-            "id": "GP_M_03",
-            "text": "En lo que tu alma ya decidió…",
-            "weight": 2
-          }
-        ],
-        "nucleo": [
-          {
-            "id": "GP_N_01",
-            "text": "la señal principal es orden: menos impulso, más intención.",
-            "weight": 3
-          },
-          {
-            "id": "GP_N_02",
-            "text": "hay un aprendizaje que se repite: míralo sin juicio.",
-            "weight": 2
-          },
-          {
-            "id": "GP_N_03",
-            "text": "si haces un ajuste hoy, el resto se acomoda.",
-            "weight": 2
-          }
-        ],
-        "profundizacion": [
-          {
-            "id": "GP_P_01",
-            "text": "Si esto te da alivio al leerlo, probablemente es verdad.",
-            "weight": 3
-          },
-          {
-            "id": "GP_P_02",
-            "text": "No busques perfección: busca coherencia contigo.",
-            "weight": 2
-          },
-          {
-            "id": "GP_P_03",
-            "text": "Lo simple puede ser tu decisión más sabia.",
-            "weight": 2
-          }
-        ],
-        "cierre": [
-          {
-            "id": "GP_C_01",
-            "text": "Microacción: escribe una decisión y hazla hoy.",
-            "weight": 3
-          },
-          {
-            "id": "GP_C_02",
-            "text": "La lectura se cierra; tu enfoque continúa.",
-            "weight": 2
-          },
-          {
-            "id": "GP_C_03",
-            "text": "Vuelve cuando necesites precisión, no ansiedad.",
-            "weight": 1
-          }
-        ]
-      }
-    },
-    {
-      "id": "es_amor_free",
-      "tier": "free",
-      "readingType": "amor",
-      "rules": {
-        "assemblyOrder": [
-          "apertura",
-          "marco",
-          "nucleo",
-          "cierre"
-        ],
-        "maxChars": 430,
-        "noRepeat": {
-          "cooldownSessions": 2
-        }
-      },
-      "three_cards": {
-        "pasado": [
-          {
-            "id": "3C_P_01",
-            "text": "Esto viene de una experiencia reciente que todavía influye.",
-            "weight": 3
-          },
-          {
-            "id": "3C_P_02",
-            "text": "Aquí hay una huella que dejó una lección importante.",
-            "weight": 2
-          },
-          {
-            "id": "3C_P_03",
-            "text": "Tu historia previa marca el punto de partida de hoy.",
-            "weight": 2
-          }
-        ],
-        "presente": [
-          {
-            "id": "3C_PR_01",
-            "text": "Ahora se ve con claridad lo que estás sosteniendo.",
-            "weight": 3
-          },
-          {
-            "id": "3C_PR_02",
-            "text": "El presente te pide foco: menos ruido, más verdad.",
-            "weight": 2
-          },
-          {
-            "id": "3C_PR_03",
-            "text": "Lo esencial hoy es decidir desde calma, no desde prisa.",
-            "weight": 2
-          }
-        ],
-        "futuro": [
-          {
-            "id": "3C_F_01",
-            "text": "Si mantienes este rumbo, esto tiende a manifestarse.",
-            "weight": 3
-          },
-          {
-            "id": "3C_F_02",
-            "text": "La tendencia apunta a un ajuste que mejora tu camino.",
-            "weight": 2
-          },
-          {
-            "id": "3C_F_03",
-            "text": "Lo que viene no está escrito: se define con tu constancia.",
-            "weight": 2
-          }
-        ],
-        "microaccion": [
-          {
-            "id": "3C_M_01",
-            "text": "Prioriza una sola cosa hoy.",
-            "weight": 3
-          },
-          {
-            "id": "3C_M_02",
-            "text": "Elige una acción mínima y cúmplela.",
-            "weight": 2
-          },
-          {
-            "id": "3C_M_03",
-            "text": "Corta una distracción importante por 24 horas.",
-            "weight": 2
-          }
-        ]
-      },
-      "six_cards": {
-        "energia": [
-          {
-            "id": "A6_EN_01",
-            "text": "La energía entre ustedes es intensa, pero pide suavidad para no confundirse.",
-            "weight": 3
-          },
-          {
-            "id": "A6_EN_02",
-            "text": "Hay conexión real, aunque el ritmo no es parejo.",
-            "weight": 2
-          },
-          {
-            "id": "A6_EN_03",
-            "text": "El clima afectivo está sensible: todo se siente más profundo de lo normal.",
-            "weight": 2
-          }
-        ],
-        "tu": [
-          {
-            "id": "A6_TU_01",
-            "text": "Tu corazón quiere claridad: no más señales ambiguas.",
-            "weight": 3
-          },
-          {
-            "id": "A6_TU_02",
-            "text": "Estás más receptivo de lo que crees, pero te cuidas para no ilusionarte de más.",
-            "weight": 2
-          },
-          {
-            "id": "A6_TU_03",
-            "text": "Tu energía pide amor propio: estar sin perseguir.",
-            "weight": 2
-          }
-        ],
-        "otra_persona": [
-          {
-            "id": "A6_OP_01",
-            "text": "La otra persona muestra interés, pero a su ritmo y con reservas.",
-            "weight": 3
-          },
-          {
-            "id": "A6_OP_02",
-            "text": "Se percibe que quiere acercarse, pero teme perder el control emocional.",
-            "weight": 2
-          },
-          {
-            "id": "A6_OP_03",
-            "text": "Hay intención, aunque todavía no se traduce en acciones constantes.",
-            "weight": 2
-          }
-        ],
-        "bloqueo": [
-          {
-            "id": "A6_BL_01",
-            "text": "El bloqueo es la interpretación: leer entre líneas en vez de preguntar.",
-            "weight": 3
-          },
-          {
-            "id": "A6_BL_02",
-            "text": "La inseguridad aparece cuando falta conversación clara.",
-            "weight": 2
-          },
-          {
-            "id": "A6_BL_03",
-            "text": "El miedo a ser vulnerable frena lo que podría fluir.",
-            "weight": 2
-          }
-        ],
-        "consejo": [
-          {
-            "id": "A6_CO_01",
-            "text": "Ve por lo simple: una pregunta honesta y una respuesta real.",
-            "weight": 3
-          },
-          {
-            "id": "A6_CO_02",
-            "text": "Muéstrate sin explicar de más: una verdad corta vale más que mil señales.",
-            "weight": 2
-          },
-          {
-            "id": "A6_CO_03",
-            "text": "Pon un límite suave: si te confunde, lo nombras.",
-            "weight": 2
-          }
-        ],
-        "resultado": [
-          {
-            "id": "A6_RE_01",
-            "text": "Si sostienes claridad emocional, la relación se ordena y se vuelve más estable.",
-            "weight": 3
-          },
-          {
-            "id": "A6_RE_02",
-            "text": "La tendencia mejora cuando hay verdad y menos suposiciones.",
-            "weight": 2
-          },
-          {
-            "id": "A6_RE_03",
-            "text": "Se abre una etapa más liviana si ambos bajan la defensa.",
-            "weight": 2
-          }
-        ],
-        "microaccion": [
-          {
-            "id": "A6_M_01",
-            "text": "Escribe una pregunta honesta (una sola) y decídete a hacerla hoy o mañana.",
-            "weight": 3
-          },
-          {
-            "id": "A6_M_02",
-            "text": "Di una verdad simple sin justificarte.",
-            "weight": 2
-          },
-          {
-            "id": "A6_M_03",
-            "text": "Haz un gesto claro y pequeño, sin esperar respuesta inmediata.",
-            "weight": 2
-          }
-        ]
-      },
-      "blocks": {
-        "apertura": [
-          {
-            "id": "AF_A_01",
-            "text": "Respira. El tarot mira tu corazón con suavidad.",
-            "weight": 3
-          },
-          {
-            "id": "AF_A_02",
-            "text": "Hoy el amor se entiende mejor cuando hay calma.",
-            "weight": 2
-          },
-          {
-            "id": "AF_A_03",
-            "text": "Hay un mensaje aquí sobre lo que mereces.",
-            "weight": 2
-          }
-        ],
-        "marco": [
-          {
-            "id": "AF_M_01",
-            "text": "En tu energía amorosa…",
-            "weight": 3
-          },
-          {
-            "id": "AF_M_02",
-            "text": "En vínculos y emociones…",
-            "weight": 2
-          },
-          {
-            "id": "AF_M_03",
-            "text": "En lo que tu corazón está pidiendo…",
-            "weight": 2
-          }
-        ],
-        "nucleo": [
-          {
-            "id": "AF_N_01",
-            "text": "se marca una verdad simple: más claridad, menos suposición.",
-            "weight": 3
-          },
-          {
-            "id": "AF_N_02",
-            "text": "la clave es cuidar tu energía emocional.",
-            "weight": 2
-          },
-          {
-            "id": "AF_N_03",
-            "text": "aparece una señal: tu intuición no está equivocada.",
-            "weight": 2
-          }
-        ],
-        "cierre": [
-          {
-            "id": "AF_C_01",
-            "text": "Microacción: di una verdad simple hoy.",
-            "weight": 3
-          },
-          {
-            "id": "AF_C_02",
-            "text": "No te apures: el amor se construye con presencia.",
-            "weight": 2
-          },
-          {
-            "id": "AF_C_03",
-            "text": "Vuelve cuando necesites una señal suave.",
-            "weight": 1
-          }
-        ]
-      }
-    },
-    {
-      "id": "es_amor_premium",
-      "tier": "premium",
-      "readingType": "amor",
-      "rules": {
-        "assemblyOrder": [
-          "apertura",
-          "marco",
-          "nucleo",
-          "profundizacion",
-          "cierre"
-        ],
-        "maxChars": 540,
-        "noRepeat": {
-          "cooldownSessions": 3
-        }
-      },
-      "three_cards": {
-        "pasado": [
-          {
-            "id": "3C_P_01",
-            "text": "Esto viene de una experiencia reciente que todavía influye.",
-            "weight": 3
-          },
-          {
-            "id": "3C_P_02",
-            "text": "Aquí hay una huella que dejó una lección importante.",
-            "weight": 2
-          },
-          {
-            "id": "3C_P_03",
-            "text": "Tu historia previa marca el punto de partida de hoy.",
-            "weight": 2
-          }
-        ],
-        "presente": [
-          {
-            "id": "3C_PR_01",
-            "text": "Ahora se ve con claridad lo que estás sosteniendo.",
-            "weight": 3
-          },
-          {
-            "id": "3C_PR_02",
-            "text": "El presente te pide foco: menos ruido, más verdad.",
-            "weight": 2
-          },
-          {
-            "id": "3C_PR_03",
-            "text": "Lo esencial hoy es decidir desde calma, no desde prisa.",
-            "weight": 2
-          }
-        ],
-        "futuro": [
-          {
-            "id": "3C_F_01",
-            "text": "Si mantienes este rumbo, esto tiende a manifestarse.",
-            "weight": 3
-          },
-          {
-            "id": "3C_F_02",
-            "text": "La tendencia apunta a un ajuste que mejora tu camino.",
-            "weight": 2
-          },
-          {
-            "id": "3C_F_03",
-            "text": "Lo que viene no está escrito: se define con tu constancia.",
-            "weight": 2
-          }
-        ],
-        "microaccion": [
-          {
-            "id": "3C_M_01",
-            "text": "Prioriza una sola cosa hoy.",
-            "weight": 3
-          },
-          {
-            "id": "3C_M_02",
-            "text": "Elige una acción mínima y cúmplela.",
-            "weight": 2
-          },
-          {
-            "id": "3C_M_03",
-            "text": "Corta una distracción importante por 24 horas.",
-            "weight": 2
-          }
-        ]
-      },
-      "six_cards": {
-        "energia": [
-          {
-            "id": "A6_EN_01",
-            "text": "La energía entre ustedes es intensa, pero pide suavidad para no confundirse.",
-            "weight": 3
-          },
-          {
-            "id": "A6_EN_02",
-            "text": "Hay conexión real, aunque el ritmo no es parejo.",
-            "weight": 2
-          },
-          {
-            "id": "A6_EN_03",
-            "text": "El clima afectivo está sensible: todo se siente más profundo de lo normal.",
-            "weight": 2
-          }
-        ],
-        "tu": [
-          {
-            "id": "A6_TU_01",
-            "text": "Tu corazón quiere claridad: no más señales ambiguas.",
-            "weight": 3
-          },
-          {
-            "id": "A6_TU_02",
-            "text": "Estás más receptivo de lo que crees, pero te cuidas para no ilusionarte de más.",
-            "weight": 2
-          },
-          {
-            "id": "A6_TU_03",
-            "text": "Tu energía pide amor propio: estar sin perseguir.",
-            "weight": 2
-          }
-        ],
-        "otra_persona": [
-          {
-            "id": "A6_OP_01",
-            "text": "La otra persona muestra interés, pero a su ritmo y con reservas.",
-            "weight": 3
-          },
-          {
-            "id": "A6_OP_02",
-            "text": "Se percibe que quiere acercarse, pero teme perder el control emocional.",
-            "weight": 2
-          },
-          {
-            "id": "A6_OP_03",
-            "text": "Hay intención, aunque todavía no se traduce en acciones constantes.",
-            "weight": 2
-          }
-        ],
-        "bloqueo": [
-          {
-            "id": "A6_BL_01",
-            "text": "El bloqueo es la interpretación: leer entre líneas en vez de preguntar.",
-            "weight": 3
-          },
-          {
-            "id": "A6_BL_02",
-            "text": "La inseguridad aparece cuando falta conversación clara.",
-            "weight": 2
-          },
-          {
-            "id": "A6_BL_03",
-            "text": "El miedo a ser vulnerable frena lo que podría fluir.",
-            "weight": 2
-          }
-        ],
-        "consejo": [
-          {
-            "id": "A6_CO_01",
-            "text": "Ve por lo simple: una pregunta honesta y una respuesta real.",
-            "weight": 3
-          },
-          {
-            "id": "A6_CO_02",
-            "text": "Muéstrate sin explicar de más: una verdad corta vale más que mil señales.",
-            "weight": 2
-          },
-          {
-            "id": "A6_CO_03",
-            "text": "Pon un límite suave: si te confunde, lo nombras.",
-            "weight": 2
-          }
-        ],
-        "resultado": [
-          {
-            "id": "A6_RE_01",
-            "text": "Si sostienes claridad emocional, la relación se ordena y se vuelve más estable.",
-            "weight": 3
-          },
-          {
-            "id": "A6_RE_02",
-            "text": "La tendencia mejora cuando hay verdad y menos suposiciones.",
-            "weight": 2
-          },
-          {
-            "id": "A6_RE_03",
-            "text": "Se abre una etapa más liviana si ambos bajan la defensa.",
-            "weight": 2
-          }
-        ],
-        "microaccion": [
-          {
-            "id": "A6_M_01",
-            "text": "Escribe una pregunta honesta (una sola) y decídete a hacerla hoy o mañana.",
-            "weight": 3
-          },
-          {
-            "id": "A6_M_02",
-            "text": "Di una verdad simple sin justificarte.",
-            "weight": 2
-          },
-          {
-            "id": "A6_M_03",
-            "text": "Haz un gesto claro y pequeño, sin esperar respuesta inmediata.",
-            "weight": 2
-          }
-        ]
-      },
-      "blocks": {
-        "apertura": [
-          {
-            "id": "AP_A_01",
-            "text": "Esta lectura mira tu corazón con precisión suave.",
-            "weight": 3
-          },
-          {
-            "id": "AP_A_02",
-            "text": "Respira: aquí aparece la verdad emocional.",
-            "weight": 3
-          },
-          {
-            "id": "AP_A_03",
-            "text": "Lo afectivo florece cuando te eliges primero.",
-            "weight": 2
-          }
-        ],
-        "marco": [
-          {
-            "id": "AP_M_01",
-            "text": "En lo que tu vínculo necesita hoy…",
-            "weight": 3
-          },
-          {
-            "id": "AP_M_02",
-            "text": "En lo que te cuesta decir…",
-            "weight": 2
-          },
-          {
-            "id": "AP_M_03",
-            "text": "En lo que tu corazón ya sabe…",
-            "weight": 2
-          }
-        ],
-        "nucleo": [
-          {
-            "id": "AP_N_01",
-            "text": "la señal principal es claridad: pide hablar simple y real.",
-            "weight": 3
-          },
-          {
-            "id": "AP_N_02",
-            "text": "aparece un límite sano: tu energía merece respeto.",
-            "weight": 2
-          },
-          {
-            "id": "AP_N_03",
-            "text": "si sueltas una suposición, ganas paz.",
-            "weight": 2
-          }
-        ],
-        "profundizacion": [
-          {
-            "id": "AP_P_01",
-            "text": "Si esto te da alivio, es una dirección correcta.",
-            "weight": 3
-          },
-          {
-            "id": "AP_P_02",
-            "text": "No busques control: busca presencia.",
-            "weight": 2
-          },
-          {
-            "id": "AP_P_03",
-            "text": "Tu intuición ya vio el punto sensible.",
-            "weight": 2
-          }
-        ],
-        "cierre": [
-          {
-            "id": "AP_C_01",
-            "text": "Microacción: elige una acción mínima y cúmplela.",
-            "weight": 3
-          },
-          {
-            "id": "AP_C_02",
-            "text": "La lectura se cierra; tu amor propio continúa.",
-            "weight": 2
-          },
-          {
-            "id": "AP_C_03",
-            "text": "Vuelve cuando necesites calma y verdad.",
-            "weight": 1
-          }
-        ]
-      }
-    },
     {
       "id": "es_trabajo_free",
       "tier": "free",
@@ -1346,7 +249,7 @@
         "cierre": [
           {
             "id": "TF_C_01",
-            "text": "Microacción: prioriza una sola cosa hoy.",
+            "text": "Cierra con foco: una prioridad protegida vale más que mil pendientes.",
             "weight": 3
           },
           {
@@ -1763,7 +666,7 @@
         "cierre": [
           {
             "id": "TP_C_01",
-            "text": "Microacción: escribe una decisión y hazla hoy.",
+            "text": "Cierra con dirección: lo importante se nota cuando lo cuidas.",
             "weight": 3
           },
           {
@@ -2041,7 +944,7 @@
         "cierre": [
           {
             "id": "DF_C_01",
-            "text": "Microacción: ordena una cosa pequeña y sostenla 7 días.",
+            "text": "Cierra con orden: una decisión pequeña sostenida cambia todo.",
             "weight": 3
           },
           {
@@ -2267,7 +1170,7 @@
         "cierre": [
           {
             "id": "DP_C_01",
-            "text": "Microacción: prioriza una sola cosa hoy.",
+            "text": "Cierra con coherencia: estabilidad es repetir lo que sí funciona.",
             "weight": 3
           },
           {
@@ -2352,6 +1255,178 @@
           }
         ]
       }
+    },
+    {
+      "id": "tarot_general",
+      "summary": [
+        {
+          "text": "Hay claridad disponible si eliges una sola prioridad. Quédate con lo esencial y evita dispersarte."
+        },
+        {
+          "text": "La energía marca un ajuste: algo pide orden y honestidad. Un paso pequeño hoy destraba mucho."
+        },
+        {
+          "text": "Se abre una oportunidad, pero requiere paciencia. Observa señales y decide sin apuro."
+        },
+        {
+          "text": "La tirada sugiere cierre de ciclo y comienzo nuevo. Suelta lo que ya cumplió su función."
+        },
+        {
+          "text": "Hay un llamado a equilibrar mente y emoción. Haz espacio para lo simple y lo verdadero."
+        },
+        {
+          "text": "El mensaje central es acción consciente: evita reaccionar por impulso y elige con calma."
+        }
+      ],
+      "full": [
+        {
+          "text": "Tu tirada habla de un proceso: primero ordenar, luego decidir, y finalmente avanzar con intención. Mira qué carta se siente como punto de giro y úsala como brújula. Haz un compromiso pequeño hoy (un mensaje, una decisión, un límite). Si sostienes consistencia, el resultado llega."
+        },
+        {
+          "text": "Aquí aparece una mezcla de construcción y cambio. No se trata de hacerlo todo, sino de hacerlo bien. Identifica qué te drena energía y qué te la devuelve. Elige una acción clara y repetible; así conviertes intuición en resultado."
+        },
+        {
+          "text": "La lectura muestra aprendizaje: lo que hoy incomoda puede ser la puerta a tu siguiente nivel. Toma lo que sí controlas: hábitos, límites, conversación pendiente. Una sola decisión concreta esta semana ordena todo."
+        },
+        {
+          "text": "Se ve madurez emocional: validar lo que sientes sin dejar que te gobierne. Si una carta se siente intensa, te muestra dónde está la verdad. Consejo: orden, descanso y una conversación honesta. La claridad se acelera cuando te alineas con lo que quieres."
+        },
+        {
+          "text": "Hay energía de avance, pero con prueba de coherencia. Si dices sí a algo, di no a otra cosa. Cierra un pendiente y abre espacio a lo nuevo. Define una fecha, un paso y un límite."
+        },
+        {
+          "text": "Esta lectura enfatiza integración: mente, emoción y acción en la misma dirección. Observa el hilo común entre tus cartas: ese es tu mensaje maestro. Tradúcelo en un paso pequeño y concreto."
+        }
+      ]
+    },
+    {
+      "id": "tarot_amor",
+      "summary": [
+        {
+          "text": "En el amor, la clave ahora es claridad y límites sanos. Lo real se sostiene con hechos."
+        },
+        {
+          "text": "Se marca una conversación necesaria: decir lo que sientes con calma puede cambiar el rumbo."
+        },
+        {
+          "text": "Tu corazón pide coherencia: no te conformes con migajas si buscas presencia."
+        },
+        {
+          "text": "Hay energía de acercamiento, pero sin apurar. Observa constancia, no promesas."
+        },
+        {
+          "text": "La tirada sugiere sanar patrones: el amor mejora cuando eliges paz antes que drama."
+        },
+        {
+          "text": "Se abre oportunidad afectiva si sueltas expectativas rígidas y te muestras auténtico."
+        }
+      ],
+      "full": [
+        {
+          "text": "En amor, tu tirada habla de honestidad emocional: lo que se nombra se ordena. Si estás en vínculo, foco en acuerdos. Si estás soltero, foco en reciprocidad. Observa conductas repetidas, no momentos aislados. Acción: una conversación sincera o un límite claro."
+        },
+        {
+          "text": "La lectura sugiere un antes y un después: o se fortalece la base, o se suelta lo que no avanza. Pregunta clave: ¿me siento elegido o solo disponible? Acción: comunica tu necesidad con calma y dignidad."
+        },
+        {
+          "text": "Cuidar el corazón sin cerrarlo: puedes amar y también poner límites. No persigas distancia; observa si vuelve por voluntad. Acción: un gesto coherente vale más que señales confusas."
+        },
+        {
+          "text": "Tu energía amorosa pide paz. Vuelve a lo básico: respeto, presencia, cuidado. Si falta, no lo justifiques. Si está, nutre con actos simples. Acción: pedir claridad, dar cariño o retirarte de lo que hiere."
+        },
+        {
+          "text": "Aprendizaje: no confundir ansiedad con destino. Lo sano se siente estable. Acción: escribe 3 no-negociables y 3 señales de alarma para ordenar tu criterio."
+        },
+        {
+          "text": "Posibilidad de crecimiento afectivo si te alineas con tu verdad. Acción: una pregunta directa (¿qué buscas? ¿qué sientes? ¿qué quieres construir?) te da la respuesta completa."
+        }
+      ]
+    },
+    {
+      "id": "tarot_trabajo",
+      "summary": [
+        {
+          "text": "En trabajo, la tirada pide foco: menos tareas, más impacto. Prioriza lo que suma."
+        },
+        {
+          "text": "Hay oportunidad si te organizas: orden y constancia abren puertas."
+        },
+        {
+          "text": "Se marca un cambio necesario: ajustar estrategia te mejora el avance."
+        },
+        {
+          "text": "Energía de crecimiento paso a paso. Evita compararte; mejora tu método."
+        },
+        {
+          "text": "Decisión pendiente: elegir un camino reducirá estrés y subirá claridad."
+        },
+        {
+          "text": "Reconocimiento si sostienes calidad y límites con tu tiempo."
+        }
+      ],
+      "full": [
+        {
+          "text": "En trabajo, tu tirada te pide dirección: elige un objetivo principal para esta semana. Reduce distracciones. Acción: 3 tareas clave + bloque de tiempo + límite claro."
+        },
+        {
+          "text": "Momento de ajuste: aprender algo o mejorar un proceso te dará ventaja. Acción: un avance concreto hoy (mensaje, propuesta, portafolio) abre oportunidad."
+        },
+        {
+          "text": "Estrategia: no todo es esfuerzo, también es elección. Pregunta: ¿esto me acerca a mi meta? Acción: decide y ejecuta en 24 horas."
+        },
+        {
+          "text": "Profesionalizar: ordenar y medir. Acción: define un indicador y síguelo. Lo que se mide, mejora."
+        },
+        {
+          "text": "Hablar claro: pedir condiciones, negociar, proponer. Acción: mensaje breve con propuesta y fecha."
+        },
+        {
+          "text": "Equilibrio: si te quemas, bajas rendimiento. Acción: agenda recuperación y vuelve con enfoque."
+        }
+      ]
+    },
+    {
+      "id": "tarot_dinero",
+      "summary": [
+        {
+          "text": "En dinero, la clave es orden: revisa gastos y prioriza estabilidad antes que impulsos."
+        },
+        {
+          "text": "Se ve oportunidad si planificas: una decisión consciente hoy mejora tu flujo."
+        },
+        {
+          "text": "Energía de prudencia: evita riesgos innecesarios y fortalece tu base."
+        },
+        {
+          "text": "Avance con estructura: presupuesto simple, meta clara y constancia."
+        },
+        {
+          "text": "Define qué quieres lograr con tu dinero y actúa en consecuencia."
+        },
+        {
+          "text": "Cortar una fuga pequeña puede liberarte más de lo que crees."
+        }
+      ],
+      "full": [
+        {
+          "text": "En dinero, primero ordenar, luego crecer. Acción: registra gastos 7 días y corta 1 fuga. Define una meta y un paso semanal."
+        },
+        {
+          "text": "Crecimiento gradual: mejor mejora constante que apuesta grande. Acción: regla simple (ahorro, límite de gasto, fondo) y sostenerla."
+        },
+        {
+          "text": "Prudencia con oportunidad: aumenta ingresos con una acción concreta. Acción: cotiza, ofrece, vende o negocia hoy."
+        },
+        {
+          "text": "Decisión: cambias un hábito o sigues igual. Acción: automatiza ahorro o pago; te da paz mental."
+        },
+        {
+          "text": "Madurez financiera: evita compras emocionales. Acción: si vas a gastar, espera 24 horas y revisa tu objetivo."
+        },
+        {
+          "text": "Equilibrio: también es valorar tu tiempo. Acción: pon precio a tu esfuerzo y elige oportunidades que respeten tu energía."
+        }
+      ]
     }
   ]
 }

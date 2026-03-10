@@ -1,3 +1,4 @@
+import 'package:tarot_app/services/user_prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String kUserNameKey = 'user_name';

@@ -1,45 +1,72 @@
 import 'package:flutter/material.dart';
 
-import '../models/tarot_models.dart';
+import '../models/horoscope_models.dart';
 import '../services/horoscope_api_service.dart';
 import '../services/user_prefs.dart';
 
-class HoroscopeScreen extends StatelessWidget {
-  final bool isPremium;
-
-  const HoroscopeScreen({
-    super.key,
-    this.isPremium = false,
-  });
-
-  String _zodiacSymbol(String name) {
-    final n = name.toLowerCase().trim();
-    if (n.contains('aries')) return '♈';
-    if (n.contains('tauro')) return '♉';
-    if (n.contains('géminis') || n.contains('geminis')) return '♊';
-    if (n.contains('cáncer') || n.contains('cancer')) return '♋';
-    if (n.contains('leo')) return '♌';
-    if (n.contains('virgo')) return '♍';
-    if (n.contains('libra')) return '♎';
-    if (n.contains('escorpio') || n.contains('scorpio')) return '♏';
-    if (n.contains('sagitario')) return '♐';
-    if (n.contains('capricornio')) return '♑';
-    if (n.contains('acuario')) return '♒';
-    if (n.contains('piscis')) return '♓';
-    return '✦';
+String symbolForSignName(String name) {
+  switch (name.toLowerCase()) {
+    case 'aries':
+      return '♈';
+    case 'tauro':
+      return '♉';
+    case 'géminis':
+    case 'geminis':
+      return '♊';
+    case 'cáncer':
+    case 'cancer':
+      return '♋';
+    case 'leo':
+      return '♌';
+    case 'virgo':
+      return '♍';
+    case 'libra':
+      return '♎';
+    case 'escorpio':
+      return '♏';
+    case 'sagitario':
+      return '♐';
+    case 'capricornio':
+      return '♑';
+    case 'acuario':
+      return '♒';
+    case 'piscis':
+      return '♓';
+    default:
+      return '✦';
   }
+}
+
+class HoroscopeScreen extends StatelessWidget {
+  const HoroscopeScreen({super.key});
+
+  // Lista local para que no dependas de otro archivo.
+  // IMPORTANTE: usa los mismos campos que tú ya vienes usando: nombre, fecha, resumenHoy.
+  static final List<HoroscopeSign> signos = [
+    HoroscopeSign(nombre: 'Aries', fecha: '21 mar – 19 abr', resumenHoy: 'Avanza con decisión, pero sin apurarte.'),
+    HoroscopeSign(nombre: 'Tauro', fecha: '20 abr – 20 may', resumenHoy: 'Ordena tu energía y prioriza lo simple.'),
+    HoroscopeSign(nombre: 'Géminis', fecha: '21 may – 20 jun', resumenHoy: 'Conversa, pregunta y abre opciones.'),
+    HoroscopeSign(nombre: 'Cáncer', fecha: '21 jun – 22 jul', resumenHoy: 'Escucha tu intuición; cuida tu espacio.'),
+    HoroscopeSign(nombre: 'Leo', fecha: '23 jul – 22 ago', resumenHoy: 'Brilla, pero desde la calma y el enfoque.'),
+    HoroscopeSign(nombre: 'Virgo', fecha: '23 ago – 22 sep', resumenHoy: 'Pequeños ajustes hoy = gran avance mañana.'),
+    HoroscopeSign(nombre: 'Libra', fecha: '23 sep – 22 oct', resumenHoy: 'Equilibrio: decide sin complacer a todos.'),
+    HoroscopeSign(nombre: 'Escorpio', fecha: '23 oct – 21 nov', resumenHoy: 'Profundiza: una verdad te libera.'),
+    HoroscopeSign(nombre: 'Sagitario', fecha: '22 nov – 21 dic', resumenHoy: 'Expande tu visión y planifica el siguiente paso.'),
+    HoroscopeSign(nombre: 'Capricornio', fecha: '22 dic – 19 ene', resumenHoy: 'Constancia y estructura: hoy se construye.'),
+    HoroscopeSign(nombre: 'Acuario', fecha: '20 ene – 18 feb', resumenHoy: 'Ideas nuevas: aterrízalas en algo concreto.'),
+    HoroscopeSign(nombre: 'Piscis', fecha: '19 feb – 20 mar', resumenHoy: 'Sensibilidad + límites = paz interior.'),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Horóscopos'),
         centerTitle: true,
-        elevation: 0,
         backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       extendBodyBehindAppBar: true,
       body: Container(
@@ -55,118 +82,126 @@ class HoroscopeScreen extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: GridView.builder(
-            padding: const EdgeInsets.all(16),
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
             itemCount: signos.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.75,
-            ),
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
               final signo = signos[index];
-              final symbol = _zodiacSymbol(signo.nombre);
-
-              return InkWell(
+              return _SignTile(
+                symbol: symbolForSignName(signo.nombre),
+                name: signo.nombre,
+                dates: signo.fecha,
+                summary: signo.resumenHoy,
+                borderColor: scheme.primary.withOpacity(0.35),
                 onTap: () {
-                  Navigator.of(context).push(
+                  Navigator.push(
+                    context,
                     MaterialPageRoute(
                       builder: (_) => HoroscopeDetailScreen(sign: signo),
                     ),
                   );
                 },
-                borderRadius: BorderRadius.circular(18),
-                child: Ink(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.30),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: scheme.primary.withOpacity(0.22),
-                      width: 1.2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.55),
-                        blurRadius: 10,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Título + símbolo (reemplaza las ✨)
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                signo.nombre,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  color: scheme.onSurface,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Container(
-                              width: 34,
-                              height: 34,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: scheme.primary.withOpacity(0.14),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: scheme.primary.withOpacity(0.35),
-                                  width: 1.0,
-                                ),
-                              ),
-                              child: Text(
-                                symbol,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  color: scheme.primary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 6),
-
-                        Text(
-                          signo.fecha,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurface.withOpacity(0.70),
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        Expanded(
-                          child: Text(
-                            signo.resumenHoy,
-                            maxLines: 6,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurface.withOpacity(0.92),
-                              height: 1.25,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               );
             },
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SignTile extends StatelessWidget {
+  final String symbol;
+  final String name;
+  final String dates;
+  final String summary;
+  final VoidCallback onTap;
+  final Color borderColor;
+
+  const _SignTile({
+    required this.symbol,
+    required this.name,
+    required this.dates,
+    required this.summary,
+    required this.onTap,
+    required this.borderColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          color: Colors.white.withOpacity(0.06),
+          border: Border.all(color: borderColor),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.black.withOpacity(0.25),
+                border: Border.all(color: scheme.primary.withOpacity(0.55)),
+              ),
+              child: Center(
+                child: Text(
+                  symbol,
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    color: scheme.primary,
+                    height: 1,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    dates,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.75),
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    summary,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.85),
+                      height: 1.2,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: Colors.white.withOpacity(0.55)),
+          ],
         ),
       ),
     );
@@ -205,9 +240,7 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
       final name = await UserPrefs.getUserName();
       if (!mounted) return;
       setState(() => _userName = UserPrefs.formatName(name));
-    } catch (_) {
-      // si algo falla, no pasa nada (solo no muestra nombre)
-    }
+    } catch (_) {}
   }
 
   Future<void> _loadDaily() async {
@@ -225,7 +258,7 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
         );
       });
     } finally {
-      setState(() => _loadingDaily = false);
+      if (mounted) setState(() => _loadingDaily = false);
     }
   }
 
@@ -238,15 +271,14 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
     } catch (_) {
       setState(() {
         _weekly = DailyHoroscope(
-          description:
-          'Tendencia semanal: ${widget.sign.resumenHoy} (adaptada a toda la semana).',
+          description: 'Tendencia semanal: ${widget.sign.resumenHoy}',
           mood: '—',
           color: '—',
           luckyNumber: '—',
         );
       });
     } finally {
-      setState(() => _loadingWeekly = false);
+      if (mounted) setState(() => _loadingWeekly = false);
     }
   }
 
@@ -259,15 +291,14 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
     } catch (_) {
       setState(() {
         _monthly = DailyHoroscope(
-          description:
-          'Tendencia del mes: ${widget.sign.resumenHoy} (proyectada para el mes).',
+          description: 'Tendencia del mes: ${widget.sign.resumenHoy}',
           mood: '—',
           color: '—',
           luckyNumber: '—',
         );
       });
     } finally {
-      setState(() => _loadingMonthly = false);
+      if (mounted) setState(() => _loadingMonthly = false);
     }
   }
 
@@ -290,8 +321,8 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
               if (i == 2) _loadMonthly();
             },
             indicatorColor: scheme.primary,
-            labelColor: scheme.onSurface,
-            unselectedLabelColor: scheme.onSurface.withOpacity(0.65),
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
             tabs: const [
               Tab(text: 'Hoy'),
               Tab(text: 'Semana'),
@@ -313,25 +344,106 @@ class _HoroscopeDetailScreenState extends State<HoroscopeDetailScreen> {
             ),
           ),
           child: SafeArea(
-            child: TabBarView(
+            child: Column(
               children: [
-                _HoroscopeTab(
-                  loading: _loadingDaily,
-                  data: _daily,
-                  fallbackText: widget.sign.resumenHoy,
-                  userName: _userName,
+                const SizedBox(height: 10),
+
+                // ===== OPCIÓN B (la que te gusta): icono grande + textos =====
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(22),
+                      color: Colors.white.withOpacity(0.06),
+                      border: Border.all(color: scheme.primary.withOpacity(0.22)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 78,
+                          height: 78,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.black.withOpacity(0.25),
+                            border: Border.all(color: scheme.primary.withOpacity(0.55)),
+                          ),
+                          child: Center(
+                            child: Text(
+                              symbolForSignName(widget.sign.nombre),
+                              style: TextStyle(
+                                fontSize: 44,
+                                fontWeight: FontWeight.w900,
+                                color: scheme.primary,
+                                height: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.sign.nombre,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                widget.sign.fecha,
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.78),
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                widget.sign.resumenHoy,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.85),
+                                  height: 1.25,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                _HoroscopeTab(
-                  loading: _loadingWeekly,
-                  data: _weekly,
-                  fallbackText: widget.sign.resumenHoy,
-                  userName: _userName,
-                ),
-                _HoroscopeTab(
-                  loading: _loadingMonthly,
-                  data: _monthly,
-                  fallbackText: widget.sign.resumenHoy,
-                  userName: _userName,
+
+                const SizedBox(height: 12),
+
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      _HoroscopeTab(
+                        loading: _loadingDaily,
+                        data: _daily,
+                        fallbackText: widget.sign.resumenHoy,
+                        userName: _userName,
+                      ),
+                      _HoroscopeTab(
+                        loading: _loadingWeekly,
+                        data: _weekly,
+                        fallbackText: widget.sign.resumenHoy,
+                        userName: _userName,
+                      ),
+                      _HoroscopeTab(
+                        loading: _loadingMonthly,
+                        data: _monthly,
+                        fallbackText: widget.sign.resumenHoy,
+                        userName: _userName,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -357,83 +469,97 @@ class _HoroscopeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
+    final scheme = Theme.of(context).colorScheme;
 
     if (loading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final raw = data?.description ?? fallbackText;
-    final cleanName = userName.trim();
-    final prefix = cleanName.isEmpty ? '' : '$cleanName, ';
-    final text = '$prefix$raw';
+    final desc = (data?.description ?? fallbackText).trim();
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 18),
       children: [
         Container(
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.28),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: scheme.primary.withOpacity(0.22),
-              width: 1.2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.5),
-                blurRadius: 10,
-                offset: const Offset(0, 6),
+            borderRadius: BorderRadius.circular(22),
+            color: Colors.white.withOpacity(0.06),
+            border: Border.all(color: scheme.primary.withOpacity(0.22)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (userName.trim().isNotEmpty)
+                Text(
+                  'Para ti, $userName ✨',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.90),
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              if (userName.trim().isNotEmpty) const SizedBox(height: 10),
+              Text(
+                desc,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.88),
+                  height: 1.55,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  _MiniPill(label: 'Ánimo', value: data?.mood ?? '—'),
+                  const SizedBox(width: 10),
+                  _MiniPill(label: 'Color', value: data?.color ?? '—'),
+                  const SizedBox(width: 10),
+                  _MiniPill(label: 'N°', value: data?.luckyNumber ?? '—'),
+                ],
               ),
             ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              text,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                height: 1.35,
-                color: scheme.onSurface.withOpacity(0.92),
-              ),
-            ),
-          ),
         ),
-        const SizedBox(height: 12),
-        if (data != null) ...[
-          _miniRow(context, 'Mood', data!.mood),
-          _miniRow(context, 'Color', data!.color),
-          _miniRow(context, 'Número', data!.luckyNumber),
-        ],
       ],
     );
   }
+}
 
-  Widget _miniRow(BuildContext context, String label, String value) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
+class _MiniPill extends StatelessWidget {
+  final String label;
+  final String value;
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 10),
-      child: Row(
-        children: [
-          Text(
-            '$label:',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: scheme.onSurface.withOpacity(0.70),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              value,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: scheme.onSurface.withOpacity(0.92),
+  const _MiniPill({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: Colors.white.withOpacity(0.06),
+        ),
+        child: Column(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.70),
+                fontWeight: FontWeight.w800,
+                fontSize: 12,
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

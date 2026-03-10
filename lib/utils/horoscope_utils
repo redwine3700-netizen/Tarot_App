@@ -1,0 +1,32 @@
+String symbolForSignName(String name) {
+  switch (name.toLowerCase()) {
+    case 'aries':
+      return '♈';
+    case 'tauro':
+      return '♉';
+    case 'géminis':
+    case 'geminis':
+      return '♊';
+    case 'cáncer':
+    case 'cancer':
+      return '♋';
+    case 'leo':
+      return '♌';
+    case 'virgo':
+      return '♍';
+    case 'libra':
+      return '♎';
+    case 'escorpio':
+      return '♏';
+    case 'sagitario':
+      return '♐';
+    case 'capricornio':
+      return '♑';
+    case 'acuario':
+      return '♒';
+    case 'piscis':
+      return '♓';
+    default:
+      return '✦';
+  }
+}
